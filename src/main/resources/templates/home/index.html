@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKEA Korea</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@350;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/ikea-style.css">
+    <link rel="stylesheet" href="/css/ikea-home.css">
+    <script src="https://js.tosspayments.com/v2/standard"></script>
+
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-background">
+            <div class="header-container">
+                <!-- IKEA Logo -->
+                <div class="ikea-logo">
+                    <a href="/ikea" style="text-decoration: none;">
+                        <div style="background: #0058AB; color: #FBD914; padding: 8px 20px; border-radius: 50px; font-weight: bold; font-size: 24px;">
+                            IKEA
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Search -->
+                <div class="search-container">
+                    <span class="search-icon" style="position: absolute; left: 16px; top: 12px; font-size: 20px;">🔍</span>
+                    <input type="text" class="search-input" placeholder="검색어 입력" style="padding-left: 48px;">
+                    <button class="camera-search-btn">
+                        <span style="font-size: 20px;">📷</span>
+                    </button>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="navigation-links">
+                    <button class="login-btn">
+                        <span style="margin-right: 5px;">👤</span>
+                        <span>로그인</span>
+                    </button>
+                    <button class="icon-btn" style="font-size: 20px;">
+                        ❤️
+                    </button>
+                    <button class="icon-btn" style="font-size: 20px;">
+                        🛒
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-section">
+        <div class="nav-divider"></div>
+        <div class="tab-list">
+            <div class="tab active">
+                <span class="tab-text">모든 제품</span>
+            </div>
+            <div class="tab">
+                <span class="tab-text">공간별 쇼핑하기</span>
+            </div>
+            <div class="tab">
+                <span class="tab-text">특별한 가격</span>
+            </div>
+            <div class="tab">
+                <span class="tab-text">새로운 소식</span>
+            </div>
+            <div class="tab">
+                <span class="tab-text">아이디어</span>
+            </div>
+            <div class="tab">
+                <span class="tab-text">플래닝 & 스타일링 서비스</span>
+            </div>
+            <div class="tab">
+                <span class="tab-text">더 보기</span>
+            </div>
+        </div>
+
+        <!-- Tab Panel -->
+        <div class="tab-panel">
+            <div class="category-grid">
+
+                <div th:each="category : ${categories}" class="category-item">
+                    <img class="category-image" th:src="${category.image_url}">
+                    <div class="category-label">
+                        <a th:href="@{/products/category/{id}(id=${category.id})}" th:text="${category.name}">카테고리명</a>
+                    </div>
+                </div>
+<!--                -->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/7654cf4b2850963ae69d56b97b091d60b012c07d?width=160" alt="신제품">-->
+<!--                    <div class="category-label">-->
+<!--                        신제품-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/3e64499278d1351485e2e700eb04dcd7b8b2b46b?width=160" alt="침대/매트리스">-->
+<!--                    <div class="category-label">-->
+
+<!--                        <a href="/products/category">침대/매트리스</a>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/ae7f91491dbbb394117825daa89fe25c59d6e023?width=160" alt="소파 및 암체어">-->
+<!--                    <div class="category-label">소파 및 암체어</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/ca3e4bb406c6d7e30c22f7a664438ab6b5a501a5?width=160" alt="수납 가구">-->
+<!--                    <div class="category-label">수납 가구</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/ddc01c9c25548a46fa3451db170824d9cf0dece5?width=160" alt="수납 용품">-->
+<!--                    <div class="category-label">수납 용품</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/6776a649622a19aea6eed729f83977d22d5755e6?width=160" alt="책상/책상 의자">-->
+<!--                    <div class="category-label">책상/책상 의자</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/7560845079ca3a7e5e242c85b9b45b8e17ebdc3a?width=160" alt="식탁/테이블/의자">-->
+<!--                    <div class="category-label">식탁/테이블/의자</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/352cb63c407d01fc7d48a75010d4e49e14bc987c?width=160" alt="아웃도어/야외용품">-->
+<!--                    <div class="category-label">아웃도어/야외용품</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/e11c9507bd769e535edc0715b7203feef7f9725a?width=160" alt="화분/식물">-->
+<!--                    <div class="category-label">화분/식물</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/df81710c80a27194ed5e87c016e6a93fc6855585?width=160" alt="홈데코/장식품">-->
+<!--                    <div class="category-label">홈데코/장식품</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/dec821eb152069d4f9f852f1e591e49ec99dbbec?width=160" alt="텍스타일 / 러그">-->
+<!--                    <div class="category-label">텍스타일 / 러그</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/ee8a26269b1d08aec97f50da3f1eac712fe6c037?width=160" alt="조명">-->
+<!--                    <div class="category-label">조명</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/ab476b181e917586eed57aca895e5af67c099500?width=160" alt="홈스마트">-->
+<!--                    <div class="category-label">홈스마트</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/a8c567d32cfabd14309c8e461dcc64e9d88760f2?width=160" alt="어린이 IKEA">-->
+<!--                    <div class="category-label">어린이</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/42941c980fe2e56d004b3458ccb30625ee90774c?width=160" alt="주방용품">-->
+<!--                    <div class="category-label">주방용품</div>-->
+<!--                </div>-->
+<!--                <div class="category-item">-->
+<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/04c2ae2b1cb8729bfd827ad8f0b8d50e5b62bef8?width=160" alt="주방가구">-->
+<!--                    <div class="category-label">주방가구</div>-->
+<!--                </div>-->
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Popular Products Section -->
+        <div class="popular-products-section">
+            <h2 class="section-title">오늘의 인기 상품</h2>
+            
+            <!-- Filter Buttons -->
+            <div class="filter-buttons">
+                <button class="filter-btn active">더 낮은 새로운 가격</button>
+                <button class="filter-btn">마지막 기회</button>
+                <button class="filter-btn">가장 낮은 가격</button>
+            </div>
+
+            <!-- Products Grid - Dynamic with Thymeleaf -->
+            <div class="products-grid">
+                <!-- Thymeleaf 반복문으로 상품 표시 -->
+                <div th:each="product : ${products}" class="product-card" th:onclick="|location.href='/products/${product.id}'|">
+                    <img class="product-image" 
+                         th:src="${product.imageUrl != null ? product.imageUrl : 'https://via.placeholder.com/310x310?text=IKEA'}" 
+                         th:alt="${product.name}">
+                    <div class="product-info">
+                        <div class="product-badge" th:if="${product.stock < 10}">재고 소진 임박</div>
+                        <div class="product-name">
+                            <span class="product-name-brand" th:text="${product.name}">상품명</span><br>
+                            <span class="product-name-desc" th:text="${product.description}">상품 설명</span>
+                        </div>
+                        <div class="product-price">
+                            <span class="currency">￦</span>
+                            <span class="price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')}">0</span>
+                        </div>
+                        <div class="original-price" th:if="${product.price < 100000}">
+                            기존가: ￦<span th:text="${#numbers.formatDecimal(product.price * 1.2, 0, 'COMMA', 0, 'POINT')}">0</span>
+                        </div>
+                        <div class="rating-container">
+                            <div class="stars">
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                                <div class="star filled"></div>
+                            </div>
+                            <span class="rating-count">(47)</span>
+                        </div>
+                        <div class="product-actions">
+                            <button class="add-to-cart-btn">
+                                <span></span>
+                            </button>
+                            <button class="wishlist-btn">
+                                <span></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 빈 상태 표시 -->
+                <div th:if="${products == null or products.isEmpty()}" style="text-align: center; grid-column: 1 / -1; padding: 50px;">
+                    <p>IKEA 카테고리 상품이 없습니다.</p>
+                    <a href="/products" style="color: #0058A3;">모든 상품 보기</a>
+                </div>
+            </div>
+        </div>

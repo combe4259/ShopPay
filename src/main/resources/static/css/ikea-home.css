@@ -1,0 +1,512 @@
+.camera-search-btn {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 64px;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.nav-divider {
+    width: 100%;
+    padding-top: 48px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 138px;
+}
+
+.header-background {
+    display: flex;
+    width: 100%;
+    height: 90px;
+    padding: 0 64px;
+    justify-content: center;
+    align-items: center;
+    background: #FFF;
+}
+
+.header-container {
+    width: 1792px;
+    height: 90px;
+    position: relative;
+}
+
+.ikea-logo {
+    position: absolute;
+    left: 48px;
+    top: 25px;
+    width: 98px;
+    height: 40px;
+}
+
+.search-container {
+    position: absolute;
+    left: 186px;
+    top: 21px;
+    width: 600px;
+    height: 48px;
+    border-radius: 64px;
+    background: #F5F5F5;
+}
+
+.search-input {
+    position: absolute;
+    left: 48px;
+    top: 11px;
+    width: 504px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    color: #484848;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: #484848;
+    font-weight: 400;
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    top: 12px;
+    width: 24px;
+    height: 24px;
+}
+
+.camera-search-btn {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 64px;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.navigation-links {
+    position: absolute;
+    right: 48px;
+    top: 25px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.login-btn {
+    display: flex;
+    width: 177px;
+    height: 40px;
+    padding: 8px 24px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border-radius: 64px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    color: #111;
+    font-weight: 400;
+}
+
+.icon-btn {
+    display: flex;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 64px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.nav-section {
+    width: 1696px;
+    height: 298px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.nav-divider {
+    position: absolute;
+    top: 51px;
+    width: 793px;
+    height: 1px;
+    border-bottom: 1px solid #DFDFDF;
+}
+
+.tab-list {
+    display: flex;
+    width: 793px;
+    height: 52px;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.tab {
+    position: relative;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 4px;
+    cursor: pointer;
+}
+
+.tab.active {
+    border-bottom: 3px solid #0058A3;
+}
+
+.tab.active .tab-text {
+    color: #111;
+    font-weight: 700;
+}
+
+.tab-text {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 20px;
+    color: #767676;
+}
+
+.tab-panel {
+    position: absolute;
+    top: 76px;
+    width: 100%;
+    height: 152px;
+}
+
+.category-grid {
+    display: flex;
+    gap: 20px;
+    padding: 8px 0;
+    overflow-x: auto;
+}
+
+.category-item {
+    width: 100px;
+    height: 136px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.category-image {
+    width: 80px;
+    height: 80px;
+    background: #FFF;
+    border-radius: 4px;
+}
+
+.category-label {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 22px;
+    color: #484848;
+    text-align: center;
+}
+
+.main-content {
+    width: 1696px;
+    margin: 64px auto 0;
+}
+
+.popular-products-section {
+    margin-top: 64px;
+}
+
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 30px;
+    letter-spacing: -0.536px;
+    color: #111;
+    margin-bottom: 38px;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 64px;
+}
+
+.filter-btn {
+    padding: 12px 26px;
+    border-radius: 64px;
+    background: #F5F5F5;
+    border: none;
+    font-size: 12px;
+    font-weight: 700;
+    color: #111;
+    cursor: pointer;
+}
+
+.filter-btn.active {
+    border: 2px solid #111;
+}
+
+.products-grid {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    padding: 8px 0;
+}
+
+.product-card {
+    width: 310px;
+    flex-shrink: 0;
+}
+
+.product-image {
+    width: 310px;
+    height: 310px;
+    background: #FFF;
+    margin-bottom: 16px;
+}
+
+.product-info {
+    padding: 0;
+}
+
+.product-badge {
+    font-size: 12px;
+    font-weight: 700;
+    color: #CC0008;
+    margin-bottom: 7px;
+}
+
+.product-name {
+    font-size: 14px;
+    line-height: 22px;
+    margin-bottom: 7px;
+}
+
+.product-name-brand {
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.product-name-desc {
+    font-weight: 400;
+}
+
+.product-price {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.currency {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111;
+}
+
+.price {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111;
+}
+
+.original-price {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: #484848;
+}
+
+.rating-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.stars {
+    display: flex;
+}
+
+.star {
+    width: 18px;
+    height: 24px;
+    background: #DFDFDF;
+    position: relative;
+}
+
+.star.filled {
+    background: #111;
+}
+
+.rating-count {
+    font-size: 13px;
+    color: #111;
+}
+
+.product-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.add-to-cart-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 64px;
+    background: #0058A3;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.wishlist-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.promo-sections {
+    margin-top: 64px;
+    display: flex;
+    gap: 12px;
+}
+
+.promo-card {
+    width: 842px;
+    height: 982px;
+    position: relative;
+    background: #F5F5F5;
+}
+
+.promo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.promo-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 150px;
+    background: linear-gradient(0deg, rgba(17, 17, 17, 0.80) 0%, rgba(17, 17, 17, 0.00) 100%);
+    padding: 47px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.promo-badge {
+    background: #007CC1;
+    padding: 2px 6px 4px;
+    color: #FFF;
+    font-size: 12px;
+    font-weight: 700;
+    width: fit-content;
+}
+
+.promo-badge.new {
+    background: #CA5008;
+}
+
+.promo-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFF;
+    line-height: 28px;
+    letter-spacing: -0.321px;
+}
+
+.promo-arrow {
+    width: 24px;
+    height: 24px;
+    margin-top: 6px;
+}
+
+.pause-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 64px;
+    background: rgba(17, 17, 17, 0.75);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.blue-promo {
+    background: #007CC1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 378px 16px 402px;
+}
+
+.blue-promo-content {
+    color: #FFF;
+}
+
+.blue-promo-title {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 38px;
+    letter-spacing: -0.176px;
+    margin-bottom: 36px;
+}
+
+.blue-promo-description {
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 30px;
+    margin-bottom: 36px;
+}
+
+.blue-promo-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 64px;
+    background: transparent;
+    border: 1px solid #FFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.additional-options {
+    font-size: 12px;
+    color: #484848;
+    margin-top: 8px;
+}
