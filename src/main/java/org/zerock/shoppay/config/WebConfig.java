@@ -12,6 +12,6 @@ public class WebConfig implements WebMvcConfigurer {
         // .html 확장자로 요청이 오면 templates 폴더에서 찾도록 설정
         registry.addViewController("/payment/success.html").setViewName("payment/success");
         registry.addViewController("/payment/fail.html").setViewName("payment/fail");
-        registry.addViewController("/fail.html").setViewName("payment/fail");
+        registry.addViewController("/home/index.html").setViewName("home/index");
     }
 }

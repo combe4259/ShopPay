@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
+import org.zerock.shoppay.service.OrderService;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -27,6 +29,9 @@ public class PaymentController {
     
     @Value("${toss.client.key}")
     private String CLIENT_KEY;
+    
+    @Autowired
+    private OrderService orderService;
     @RequestMapping(value = "/confirm/payment")
     @ResponseBody
     public ResponseEntity<JSONObject> confirmPayment(HttpServletRequest request, @RequestBody String jsonBody) throws Exception {
@@ -39,6 +44,32 @@ public class PaymentController {
     public String checkout(Model model) {
         model.addAttribute("clientKey", CLIENT_KEY);
         return "payment/checkout";
+    }
+    
+    // 상품 결제 확인 (주문 처리 포함)
+    @RequestMapping(value = "/confirm/order")
+    @ResponseBody
+    public ResponseEntity<JSONObject> confirmOrderPayment(@RequestBody String jsonBody) throws Exception {
+        JSONObject requestData = parseRequestData(jsonBody);
+        String orderId = (String) requestData.get("orderId");
+        String paymentKey = (String) requestData.get("paymentKey");
+        
+        // 토스페이먼츠 결제 승인 요청
+        JSONObject response = sendRequest(requestData, API_SECRET_KEY, "https://api.tosspayments.com/v1/payments/confirm");
+        
+        // 결제 성공 시 주문 상태 업데이트
+        if (!response.containsKey("error")) {
+            try {
+                orderService.confirmPayment(orderId, paymentKey, response);
+                response.put("orderProcessed", true);
+            } catch (Exception e) {
+                response.put("orderProcessed", false);
+                response.put("orderError", e.getMessage());
+            }
+        }
+        
+        int statusCode = response.containsKey("error") ? 400 : 200;
+        return ResponseEntity.status(statusCode).body(response);
     }
 
     private JSONObject parseRequestData(String jsonBody) {
