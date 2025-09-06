@@ -80,85 +80,13 @@
         <!-- Tab Panel -->
         <div class="tab-panel">
             <div class="category-grid">
-
                 <div th:each="category : ${categories}" class="category-item">
                     <img class="category-image" th:src="${category.image_url}">
                     <div class="category-label">
-                        <a th:href="@{/products/category/{id}(id=${category.id})}" th:text="${category.name}">카테고리명</a>
+                        <a th:href="@{/products/category/{categoryName}(categoryName=${category.name})}" th:text="${category.name}">카테고리명</a>
                     </div>
                 </div>
-<!--                -->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/7654cf4b2850963ae69d56b97b091d60b012c07d?width=160" alt="신제품">-->
-<!--                    <div class="category-label">-->
-<!--                        신제품-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/3e64499278d1351485e2e700eb04dcd7b8b2b46b?width=160" alt="침대/매트리스">-->
-<!--                    <div class="category-label">-->
-
-<!--                        <a href="/products/category">침대/매트리스</a>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/ae7f91491dbbb394117825daa89fe25c59d6e023?width=160" alt="소파 및 암체어">-->
-<!--                    <div class="category-label">소파 및 암체어</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/ca3e4bb406c6d7e30c22f7a664438ab6b5a501a5?width=160" alt="수납 가구">-->
-<!--                    <div class="category-label">수납 가구</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/ddc01c9c25548a46fa3451db170824d9cf0dece5?width=160" alt="수납 용품">-->
-<!--                    <div class="category-label">수납 용품</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/6776a649622a19aea6eed729f83977d22d5755e6?width=160" alt="책상/책상 의자">-->
-<!--                    <div class="category-label">책상/책상 의자</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/7560845079ca3a7e5e242c85b9b45b8e17ebdc3a?width=160" alt="식탁/테이블/의자">-->
-<!--                    <div class="category-label">식탁/테이블/의자</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/352cb63c407d01fc7d48a75010d4e49e14bc987c?width=160" alt="아웃도어/야외용품">-->
-<!--                    <div class="category-label">아웃도어/야외용품</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/e11c9507bd769e535edc0715b7203feef7f9725a?width=160" alt="화분/식물">-->
-<!--                    <div class="category-label">화분/식물</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/df81710c80a27194ed5e87c016e6a93fc6855585?width=160" alt="홈데코/장식품">-->
-<!--                    <div class="category-label">홈데코/장식품</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/dec821eb152069d4f9f852f1e591e49ec99dbbec?width=160" alt="텍스타일 / 러그">-->
-<!--                    <div class="category-label">텍스타일 / 러그</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/ee8a26269b1d08aec97f50da3f1eac712fe6c037?width=160" alt="조명">-->
-<!--                    <div class="category-label">조명</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/ab476b181e917586eed57aca895e5af67c099500?width=160" alt="홈스마트">-->
-<!--                    <div class="category-label">홈스마트</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/a8c567d32cfabd14309c8e461dcc64e9d88760f2?width=160" alt="어린이 IKEA">-->
-<!--                    <div class="category-label">어린이</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/42941c980fe2e56d004b3458ccb30625ee90774c?width=160" alt="주방용품">-->
-<!--                    <div class="category-label">주방용품</div>-->
-<!--                </div>-->
-<!--                <div class="category-item">-->
-<!--                    <img class="category-image" src="https://api.builder.io/api/v1/image/assets/TEMP/04c2ae2b1cb8729bfd827ad8f0b8d50e5b62bef8?width=160" alt="주방가구">-->
-<!--                    <div class="category-label">주방가구</div>-->
-<!--                </div>-->
             </div>
-            
         </div>
     </div>
 

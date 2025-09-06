@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product.name}">상품 상세</title>
+    <script src="https://js.tosspayments.com/v2/standard"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .product-detail {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        .product-image {
+            width: 100%;
+            height: 400px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+        .product-info h1 {
+            margin-top: 0;
+            color: #333;
+        }
+        .price {
+            font-size: 28px;
+            color: #0066ff;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .description {
+            color: #666;
+            line-height: 1.6;
+            margin: 20px 0;
+        }
+        .stock-info {
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .quantity-selector button {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .quantity-selector input {
+            width: 60px;
+            height: 40px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .btn-buy {
+            background-color: #0066ff;
+            color: white;
+        }
+        .btn-back {
+            background-color: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="product-detail">
+            <div class="product-image">
+                <span th:if="${product.imageUrl == null}">이미지 없음</span>
+                <img th:if="${product.imageUrl != null}" th:src="${product.imageUrl}" alt="상품 이미지" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            
+            <div class="product-info">
+                <h1 th:text="${product.name}">상품명</h1>
+                <div class="price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + '원'">0원</div>
+                
+                <div class="description" th:text="${product.description}">
+                    상품 설명이 없습니다.
+                </div>
+                
+                <div class="stock-info">
+                    <strong>재고 수량:</strong> <span th:text="${product.stock} + '개'" id="stock">0개</span>
+                </div>
+                
+                <div class="quantity-selector">
+                    <label>구매 수량:</label>
+                    <button onclick="decreaseQuantity()">-</button>
+                    <input type="number" id="quantity" value="1" min="1" th:max="${product.stock}">
+                    <button onclick="increaseQuantity()">+</button>
+                </div>
+                
+                <button class="btn btn-buy" onclick="requestPayment()">구매하기</button>
+                <a href="/products" class="btn btn-back">목록으로</a>
+            </div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        const product = {
+            id: [[${product.id}]],
+            name: [[${product.name}]],
+            price: [[${product.price}]],
+            stock: [[${product.stock}]]
+        };
+        
+        const clientKey = [[${@environment.getProperty('toss.client.key')}]];
+        const tossPayments = TossPayments(clientKey);
+        const payment = tossPayments.payment({customerKey: TossPayments.ANONYMOUS});
+        
+        function decreaseQuantity() {
+            const input = document.getElementById('quantity');
+            if (input.value > 1) {
+                input.value = parseInt(input.value) - 1;
+            }
+        }
+        
+        function increaseQuantity() {
+            const input = document.getElementById('quantity');
+            if (input.value < product.stock) {
+                input.value = parseInt(input.value) + 1;
+            }
+        }
+        
+        async function requestPayment() {
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const totalAmount = product.price * quantity;
+            
+            // 1. 먼저 주문 생성
+            const orderResponse = await fetch('/order/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    productId: product.id,
+                    quantity: quantity,
+                    customerName: '김토스',  // 실제로는 사용자 입력 받아야 함
+                    customerEmail: 'customer@example.com',
+                    customerPhone: '010-1234-5678'
+                })
+            });
+            
+            const orderData = await orderResponse.json();
+            
+            if (!orderData.success) {
+                alert('주문 생성 실패: ' + orderData.message);
+                return;
+            }
+            
+            // 2. 토스페이먼츠 결제 요청
+            await payment.requestPayment({
+                method: "CARD",
+                amount: {
+                    currency: "KRW",
+                    value: totalAmount,
+                },
+                orderId: orderData.orderId,  // 서버에서 생성한 주문 ID 사용
+                orderName: product.name + (quantity > 1 ? ' 외 ' + (quantity - 1) + '개' : ''),
+                successUrl: window.location.origin + "/payment/success.html",
+                failUrl: window.location.origin + "/payment/fail.html",
+                customerEmail: 'customer@example.com',
+                customerName: '김토스',
+                customerMobilePhone: '01012345678',
+                card: {
+                    useEscrow: false,
+                    flowMode: "DEFAULT",
+                    useCardPoint: false,
+                    useAppCardOnly: false,
+                },
+            });
+        }
+    </script>
+</body>
+</html>

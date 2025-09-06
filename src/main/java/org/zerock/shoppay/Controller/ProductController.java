@@ -34,20 +34,20 @@ public class ProductController {
         return "product/detail";
     }
     
-    // 카테고리별 상품 목록 (ID로 조회)
-    @GetMapping("/category/{categoryId}")
-    public String productsByCategory(@PathVariable Long categoryId, Model model) {
-        List<Product> products = productService.getProductsByCategoryId(categoryId);
-        model.addAttribute("products", products);
-        model.addAttribute("categoryId", categoryId);
-        return "product/list";
-    }
-    @GetMapping("/category")
-    public String productsByCategory(@RequestParam String categoryName,Model model) {
+//    카테고리별 상품 목록 (ID로 조회)
+//    @GetMapping("/category/{categoryId}")
+//    public String productsByCategory(@PathVariable Long categoryId, Model model) {
+//        List<Product> products = productService.getProductsByCategoryId(categoryId);
+//        model.addAttribute("products", products);
+//        model.addAttribute("categoryId", categoryId);
+//        return "product/list";
+//    }
+    @GetMapping("/category/{categoryName}")
+    public String productsByCategory(@PathVariable String categoryName,Model model) {
         List<Product> products = productService.getProductsByCategory(categoryName);
         model.addAttribute("products", products);
         model.addAttribute("category", categoryName);
-        return "product/list";
+        return "product/category";  // IKEA 스타일 카테고리 페이지
     }
     
     // 상품 검색
