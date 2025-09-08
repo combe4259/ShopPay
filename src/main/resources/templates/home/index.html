@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,14 +36,29 @@
 
                 <!-- Navigation Links -->
                 <div class="navigation-links">
-                    <button class="login-btn">
-                        <span style="margin-right: 5px;">👤</span>
-                        <span>로그인</span>
-                    </button>
-                    <button class="icon-btn" style="font-size: 20px;">
+                    <!-- 비로그인 상태 -->
+                    <th:block th:if="${#authorization.expression('!isAuthenticated()')}">
+                        <button class="login-btn" onclick="location.href='/login'">
+                            <span style="margin-right: 5px;">👤</span>
+                            <span>로그인</span>
+                        </button>
+                    </th:block>
+                    
+                    <!-- 로그인 상태 -->
+                    <th:block th:if="${#authorization.expression('isAuthenticated()')}">
+                        <button class="login-btn" onclick="location.href='/mypage'">
+                            <span style="margin-right: 5px;">👤</span>
+                            <span>마이페이지</span>
+                        </button>
+                        <button class="login-btn" onclick="location.href='/logout'" style="margin-left: 10px;">
+                            로그아웃
+                        </button>
+                    </th:block>
+                    
+                    <button class="icon-btn" style="font-size: 20px;" onclick="location.href='/wishlist'">
                         ❤️
                     </button>
-                    <button class="icon-btn" style="font-size: 20px;">
+                    <button class="icon-btn" style="font-size: 20px;" onclick="location.href='/cart'">
                         🛒
                     </button>
                 </div>

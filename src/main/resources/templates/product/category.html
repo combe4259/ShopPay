@@ -286,6 +286,54 @@
             color: white;
         }
         
+        /* 페이지네이션 스타일 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 40px 0;
+        }
+        
+        .page-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .page-link:hover:not(.disabled):not(.active) {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+        
+        .page-link.active {
+            background: #0058a3;
+            color: white;
+            border-color: #0058a3;
+        }
+        
+        .page-link.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .page-link.prev,
+        .page-link.next {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
         /* 반응형 */
         @media (max-width: 768px) {
             .products-grid {
@@ -387,9 +435,36 @@
             </div>
         </div>
         
-        <!-- 더 보기 버튼 -->
-        <div class="load-more">
-            <button class="load-more-btn">더 보기</button>
+        <!-- 페이지네이션 -->
+        <div class="pagination" th:if="${totalPages > 1}">
+            <!-- 이전 페이지 -->
+            <a th:href="@{/products/category/{category}(category=${category}, page=${currentPage - 1}, size=${size}, sort=${sort}, direction=${direction})}"
+               th:class="${'page-link prev ' + (currentPage == 0 ? 'disabled' : '')}"
+               th:if="${currentPage > 0}">
+                <span>←</span>
+            </a>
+            
+            <!-- 페이지 번호들 -->
+            <th:block th:each="pageNum : ${#numbers.sequence(startPage, endPage)}">
+                <a th:href="@{/products/category/{category}(category=${category}, page=${pageNum}, size=${size}, sort=${sort}, direction=${direction})}"
+                   th:class="${'page-link ' + (pageNum == currentPage ? 'active' : '')}"
+                   th:text="${pageNum + 1}">1</a>
+            </th:block>
+            
+            <!-- 다음 페이지 -->
+            <a th:href="@{/products/category/{category}(category=${category}, page=${currentPage + 1}, size=${size}, sort=${sort}, direction=${direction})}"
+               th:class="${'page-link next ' + (currentPage >= totalPages - 1 ? 'disabled' : '')}"
+               th:if="${currentPage < totalPages - 1}">
+                <span>→</span>
+            </a>
+        </div>
+        
+        <!-- 페이지 정보 -->
+        <div class="page-info" style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+            <span th:text="${'전체 ' + totalItems + '개 중 ' + (currentPage * size + 1) + '-' + 
+                            (currentPage * size + products.size()) + '개 표시'}">
+                전체 48개 중 1-12개 표시
+            </span>
         </div>
     </div>
     

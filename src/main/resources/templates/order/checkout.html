@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문/결제 - IKEA</title>
+    <!-- Daum 우편번호 API -->
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f5f5;
+        }
+        
+        /* 헤더 */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 0;
+        }
+        
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            background: #0058a3;
+            color: #fbd914;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        .checkout-steps {
+            display: flex;
+            gap: 30px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .step.active {
+            color: #0058a3;
+            font-weight: 600;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        .step.active .step-number {
+            background: #0058a3;
+            color: white;
+        }
+        
+        /* 메인 컨테이너 */
+        .checkout-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #111;
+        }
+        
+        /* 레이아웃 */
+        .checkout-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+        
+        /* 주문 정보 섹션 */
+        .order-info-section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #111;
+        }
+        
+        /* 배송 정보 폼 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-label .required {
+            color: #e60023;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #0058a3;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .address-search-btn {
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        .address-search-btn:hover {
+            background: #000;
+        }
+        
+        /* 주문 상품 목록 */
+        .order-items {
+            margin-top: 30px;
+        }
+        
+        .order-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .order-item:last-child {
+            border-bottom: none;
+        }
+        
+        .order-item-image {
+            width: 80px;
+            height: 80px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .order-item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .order-item-details {
+            flex: 1;
+        }
+        
+        .order-item-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .order-item-desc {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .order-item-quantity {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .order-item-price {
+            font-size: 16px;
+            font-weight: 600;
+            min-width: 100px;
+            text-align: right;
+        }
+        
+        /* 결제 수단 */
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .payment-method {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .payment-method:hover {
+            border-color: #999;
+        }
+        
+        .payment-method.selected {
+            border-color: #0058a3;
+            background: #f0f7ff;
+        }
+        
+        .payment-method-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .payment-method-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* 주문 요약 */
+        .order-summary {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .summary-row.subtotal {
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .summary-row.total {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #111;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .agree-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        
+        .agree-checkbox {
+            display: flex;
+            align-items: start;
+            gap: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        .agree-checkbox input {
+            margin-top: 2px;
+        }
+        
+        .pay-btn {
+            width: 100%;
+            padding: 18px;
+            background: #0058a3;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 20px;
+        }
+        
+        .pay-btn:hover:not(:disabled) {
+            background: #004f8f;
+        }
+        
+        .pay-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .checkout-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-summary {
+                position: static;
+            }
+        }
+    </style>
+    <!-- 다음 주소 API -->
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+</head>
+<body>
+    <!-- 헤더 -->
+    <div class="header">
+        <div class="header-container">
+            <a href="/" class="logo">IKEA</a>
+            <div class="checkout-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <span>장바구니</span>
+                </div>
+                <div class="step active">
+                    <div class="step-number">2</div>
+                    <span>주문/결제</span>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <span>완료</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="checkout-container">
+        <h1 class="page-title">주문/결제</h1>
+        
+        <div class="checkout-layout">
+            <!-- 주문 정보 -->
+            <div class="order-info-section">
+                <!-- 배송 정보 -->
+                <h2 class="section-title">배송 정보</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        받는 사람
+                    </label>
+                    <input type="text" class="form-input" id="receiverName" 
+                           th:value="${member != null ? member.name : ''}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        연락처
+                    </label>
+                    <input type="tel" class="form-input" id="receiverPhone" 
+                           th:value="${member != null ? member.phone : ''}"
+                           placeholder="010-0000-0000">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        배송 주소
+                    </label>
+                    <div class="form-row">
+                        <input type="text" class="form-input" id="zipcode" 
+                               th:value="${member != null and member.zipCode != null ? member.zipCode : ''}" placeholder="우편번호" readonly>
+                        <button class="address-search-btn" id="addressSearchBtn" type="button">
+                            주소 검색
+                        </button>
+                    </div>
+                    <input type="text" class="form-input" id="address" 
+                           th:value="${member != null and member.address != null ? member.address : ''}" placeholder="기본 주소" readonly>
+                    <input type="text" class="form-input" id="addressDetail" 
+                           th:value="${member != null and member.detailAddress != null ? member.detailAddress : ''}" placeholder="상세 주소">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">배송 메모</label>
+                    <input type="text" class="form-input" id="deliveryMemo" 
+                           placeholder="예: 부재시 경비실에 맡겨주세요">
+                </div>
+                
+                <!-- 주문 상품 목록 -->
+                <div class="order-items">
+                    <h3 class="section-title">주문 상품</h3>
+                    
+                    <div class="order-item" th:each="item : ${cartItems}">
+                        <div class="order-item-image">
+                            <img th:src="${item.product.imageUrl}" 
+                                 th:alt="${item.product.name}">
+                        </div>
+                        <div class="order-item-details">
+                            <div class="order-item-name" th:text="${item.product.name}">상품명</div>
+                            <div class="order-item-desc" th:text="${item.product.description}">상품 설명</div>
+                            <div class="order-item-quantity">
+                                수량: <span th:text="${item.quantity}">1</span>개
+                            </div>
+                        </div>
+                        <div class="order-item-price">
+                            ₩<span th:text="${#numbers.formatInteger(item.totalPrice, 3, 'COMMA')}">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 결제 수단 -->
+                <div style="margin-top: 30px;">
+                    <h3 class="section-title">결제 수단</h3>
+                    
+                    <div class="payment-methods">
+                        <div class="payment-method selected" data-payment="card">
+                            <div class="payment-method-icon">💳</div>
+                            <div class="payment-method-name">신용/체크카드</div>
+                        </div>
+                        <div class="payment-method" data-payment="kakao">
+                            <div class="payment-method-icon">🟡</div>
+                            <div class="payment-method-name">카카오페이</div>
+                        </div>
+                        <div class="payment-method" data-payment="toss">
+                            <div class="payment-method-icon">🔵</div>
+                            <div class="payment-method-name">토스페이</div>
+                        </div>
+                        <div class="payment-method" data-payment="transfer">
+                            <div class="payment-method-icon">🏦</div>
+                            <div class="payment-method-name">계좌이체</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 주문 요약 -->
+            <div class="order-summary">
+                <h2 class="section-title">결제 정보</h2>
+                
+                <div class="summary-row">
+                    <span>상품 금액</span>
+                    <span>₩<span th:text="${#numbers.formatInteger(subtotal, 3, 'COMMA')}">0</span></span>
+                </div>
+                <div class="summary-row subtotal">
+                    <span>배송비</span>
+                    <span th:text="${deliveryFee == 0 ? '무료' : '₩' + #numbers.formatInteger(deliveryFee, 3, 'COMMA')}">₩5,000</span>
+                </div>
+                
+                <div class="summary-row total">
+                    <span>총 결제 금액</span>
+                    <span>₩<span th:text="${#numbers.formatInteger(totalAmount, 3, 'COMMA')}">0</span></span>
+                </div>
+                
+                <div class="agree-section">
+                    <div class="agree-checkbox">
+                        <input type="checkbox" id="agreeAll">
+                        <label for="agreeAll">
+                            <strong>전체 동의</strong><br>
+                            주문 내용을 확인하였으며, 정보 제공 등에 동의합니다.
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="pay-btn" id="payBtn" type="button">
+                    <span th:text="${#numbers.formatInteger(totalAmount, 3, 'COMMA')}">0</span>원 결제하기
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        // DOM이 로드된 후 실행
+        document.addEventListener('DOMContentLoaded', function() {
+            const totalAmount = [[${totalAmount}]];
+            const cartItems = [[${cartItemsJson}]];
+            let selectedPayment = 'card';
+            
+            // 주소 검색 버튼 이벤트
+            const addressSearchBtn = document.getElementById('addressSearchBtn');
+            if (addressSearchBtn) {
+                addressSearchBtn.addEventListener('click', function() {
+                    new daum.Postcode({
+                        oncomplete: function(data) {
+                            document.getElementById('zipcode').value = data.zonecode;
+                            document.getElementById('address').value = data.roadAddress;
+                            document.getElementById('addressDetail').focus();
+                        }
+                    }).open();
+                });
+            }
+        
+            // 결제 수단 선택 이벤트
+            document.querySelectorAll('.payment-method').forEach(method => {
+                method.addEventListener('click', function() {
+                    selectedPayment = this.dataset.payment;
+                    document.querySelectorAll('.payment-method').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                });
+            });
+        
+            // 전체 동의 체크박스 이벤트
+            const agreeAll = document.getElementById('agreeAll');
+            if (agreeAll) {
+                agreeAll.addEventListener('change', function() {
+                    const payBtn = document.getElementById('payBtn');
+                    payBtn.disabled = !agreeAll.checked;
+                });
+            }
+        
+            // 결제 버튼 이벤트
+            const payBtn = document.getElementById('payBtn');
+            if (payBtn) {
+                payBtn.addEventListener('click', function() {
+                    if (!document.getElementById('agreeAll').checked) {
+                        alert('결제 진행을 위해 전체 동의가 필요합니다.');
+                        return;
+                    }
+                    
+                    // 배송 정보 수집
+                    const orderData = {
+                        receiverName: document.getElementById('receiverName').value,
+                        receiverPhone: document.getElementById('receiverPhone').value,
+                        zipcode: document.getElementById('zipcode').value,
+                        address: document.getElementById('address').value,
+                        addressDetail: document.getElementById('addressDetail').value,
+                        deliveryMemo: document.getElementById('deliveryMemo').value,
+                        paymentMethod: selectedPayment,
+                        cartItemIds: cartItems.map(item => item.id),
+                        totalAmount: totalAmount
+                    };
+                    
+                    // 유효성 검사 (배송 정보는 선택사항)
+                    
+                    // 주문 생성 요청
+                    fetch('/order/create-from-cart', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(orderData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // 토스페이먼츠 결제 페이지로 이동
+                            const orderName = cartItems.length > 1 
+                                ? `${cartItems[0].product.name} 외 ${cartItems.length - 1}건`
+                                : cartItems[0].product.name;
+                            
+                            // 토스페이먼츠 결제창으로 이동
+                            location.href = `/payment/checkout?orderId=${data.orderId}&amount=${totalAmount}&orderName=${encodeURIComponent(orderName)}`;
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('주문 처리 중 오류가 발생했습니다.');
+                    });
+                });
+            }
+            
+            // 초기화
+            document.getElementById('payBtn').disabled = true;
+        });
+    </script>
+</body>
+</html>
