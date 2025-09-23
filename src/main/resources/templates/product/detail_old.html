@@ -193,7 +193,7 @@
                 },
                 orderId: orderData.orderId,  // 서버에서 생성한 주문 ID 사용
                 orderName: product.name + (quantity > 1 ? ' 외 ' + (quantity - 1) + '개' : ''),
-                successUrl: window.location.origin + "/payment/success.html",
+                successUrl: window.location.origin + "/payment/success.html",//결제 성공시 이동
                 failUrl: window.location.origin + "/payment/fail.html",
                 customerEmail: 'customer@example.com',
                 customerName: '김토스',

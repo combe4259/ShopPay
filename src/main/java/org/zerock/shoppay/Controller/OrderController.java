@@ -6,6 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.zerock.shoppay.Entity.Cart;
 import org.zerock.shoppay.Entity.CartItem;
@@ -28,6 +29,9 @@ public class OrderController {
     private final OrderService orderService;
     private final CartService cartService;
     private final MemberService memberService;
+
+    @Value("${toss.client.key}")
+    private String TOSS_CLIENT_KEY;
     
     // 주문 생성 API (결제 전)
     @PostMapping("/create")
@@ -144,7 +148,8 @@ public class OrderController {
         model.addAttribute("subtotal", totalPrice);
         model.addAttribute("deliveryFee", deliveryFee);
         model.addAttribute("totalAmount", finalTotal);
-        
+        model.addAttribute("clientKey", TOSS_CLIENT_KEY);
+
         return "order/checkout";
     }
     
@@ -165,13 +170,36 @@ public class OrderController {
             }
             
             Member member = memberService.findByEmail(userDetails.getUsername());
-            List<Long> cartItemIds = (List<Long>) requestData.get("cartItemIds");
+            List<Integer> cartItemIds = (List<Integer>) requestData.get("cartItemIds");
             
-            // 주문 생성 로직 구현 필요
+            // 선택된 카트 아이템들로 주문 생성
             String orderId = "ORDER_" + System.currentTimeMillis();
+            int totalAmount = 0;
+            
+            // 선택된 아이템들의 총 금액 계산
+            Cart cart = cartService.getCartWithItems(member);
+            List<CartItem> selectedItems = new ArrayList<>();
+            
+            for (CartItem item : cart.getCartItems()) {
+                if (cartItemIds.contains(item.getId().intValue())) {
+                    selectedItems.add(item);
+                    totalAmount += item.getTotalPrice();
+                }
+            }
+            
+            if (selectedItems.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "선택된 상품이 없습니다.");
+                return ResponseEntity.ok(response);
+            }
+            
+            // 세션에 선택된 아이템 ID 저장 (결제 성공 후 처리용)
+            // 실제로는 DB에 임시 주문으로 저장하는 것이 좋음
             
             response.put("success", true);
             response.put("orderId", orderId);
+            response.put("totalAmount", totalAmount);
+            response.put("selectedItemIds", cartItemIds);
             response.put("message", "주문이 생성되었습니다.");
             
         } catch (Exception e) {

@@ -1,6 +1,7 @@
 package org.zerock.shoppay.Controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.http.ResponseEntity;
@@ -36,41 +37,33 @@ import java.util.Base64;
 import java.time.LocalDateTime;
 
 @Controller
+@RequiredArgsConstructor
 public class PaymentController {
+
+
 
     @Value("${toss.secret.key}")
     private String API_SECRET_KEY;
     
     @Value("${toss.client.key}")
     private String CLIENT_KEY;
-    
-    @Autowired
-    private OrderService orderService;
-    
-    @Autowired
-    private CartService cartService;
-    
-    @Autowired
-    private MemberService memberService;
-    @RequestMapping(value = "/confirm/payment")
+
+    private final OrderService orderService;
+    private final CartService cartService;
+    private final MemberService memberService;
+
+    @PostMapping("/confirm/payment")
     @ResponseBody
     public ResponseEntity<JSONObject> confirmPayment(
-            HttpServletRequest request, 
+            HttpServletRequest request,
             @RequestBody String jsonBody,
             @AuthenticationPrincipal UserDetails userDetails) throws Exception {
-        
-        System.out.println("=== 결제 승인 요청 받음 ===");
-        System.out.println("userDetails: " + userDetails);
-        
+
         JSONObject requestData = parseRequestData(jsonBody);
         String orderId = (String) requestData.get("orderId");
         String paymentKey = (String) requestData.get("paymentKey");
         Long amount = Long.parseLong(requestData.get("amount").toString());
-        
-        System.out.println("orderId: " + orderId);
-        System.out.println("paymentKey: " + paymentKey);
-        System.out.println("amount: " + amount);
-        
+
         // 토스페이먼츠 결제 승인 API 호출
         JSONObject response = sendRequest(requestData, API_SECRET_KEY, "https://api.tosspayments.com/v1/payments/confirm");
         
@@ -81,10 +74,26 @@ public class PaymentController {
             
             // 결제 성공 - 주문 데이터 저장
             if (userDetails != null) {
-                System.out.println("로그인 사용자: " + userDetails.getUsername());
                 Member member = memberService.findByEmail(userDetails.getUsername());
                 Cart cart = cartService.getCartWithItems(member);
-                System.out.println("장바구니 아이템 수: " + cart.getCartItems().size());
+                
+                List<Integer> selectedItemIds = null;
+                if (requestData.containsKey("selectedCartItems") && requestData.get("selectedCartItems") != null) {
+                    String selectedItemsJsonString = (String) requestData.get("selectedCartItems");
+                    if (selectedItemsJsonString != null && !selectedItemsJsonString.isEmpty()) {
+                        JSONParser parser = new JSONParser();
+                        try {
+                            org.json.simple.JSONArray selectedItemsArray = (org.json.simple.JSONArray) parser.parse(selectedItemsJsonString);
+                            selectedItemIds = new ArrayList<>();
+                            for (Object id : selectedItemsArray) {
+                                selectedItemIds.add(((Long) id).intValue());
+                            }
+                        } catch (ParseException e) {
+                            System.err.println("Error parsing selectedCartItems: " + e.getMessage());
+                            selectedItemIds = new ArrayList<>(); // 오류 발생 시 안전하게 빈 리스트로 처리
+                        }
+                    }
+                }
                 
                 // 주문 생성
                 Order order = Order.builder()
@@ -96,16 +105,24 @@ public class PaymentController {
                     .paidAt(LocalDateTime.now())
                     .build();
                 
-                // 장바구니 아이템을 주문 아이템으로 변환
                 List<OrderItem> orderItems = new ArrayList<>();
-                for (CartItem cartItem : cart.getCartItems()) {
-                    OrderItem orderItem = OrderItem.builder()
-                        .order(order)
-                        .product(cartItem.getProduct())
-                        .quantity(cartItem.getQuantity())
-                        .price(cartItem.getProduct().getPrice())
-                        .build();
-                    orderItems.add(orderItem);
+                List<CartItem> itemsToRemove = new ArrayList<>();
+                
+                if (selectedItemIds != null && !selectedItemIds.isEmpty()) {
+                    for (CartItem cartItem : cart.getCartItems()) {
+                        if (selectedItemIds.contains(cartItem.getId().intValue())) {
+                            OrderItem orderItem = OrderItem.builder()
+                                .order(order)
+                                .product(cartItem.getProduct())
+                                .quantity(cartItem.getQuantity())
+                                .price(cartItem.getProduct().getPrice())
+                                .build();
+                            orderItems.add(orderItem);
+                            itemsToRemove.add(cartItem); // 제거할 아이템 목록에 추가
+                        }
+                    }
+                } else {
+                    System.out.println("Warning: Payment confirmed but no selectedCartItems found. Cart will not be cleared.");
                 }
                 order.setOrderItems(orderItems);
                 
@@ -113,15 +130,14 @@ public class PaymentController {
                 System.out.println("주문 저장 시작...");
                 Order savedOrder = orderService.saveOrder(order);
                 System.out.println("주문 저장 완료! orderId: " + savedOrder.getOrderId());
-                
-                // 장바구니 비우기
-                System.out.println("장바구니 비우기...");
-                cartService.clearCart(member);
-                System.out.println("장바구니 비우기 완료!");
+
+                // 선택된 아이템만 장바구니에서 제거
+                for (CartItem item : itemsToRemove) {
+                    cartService.removeFromCart(item.getId());
+                }
                 
                 response.put("message", "주문이 성공적으로 처리되었습니다.");
             } else {
-                System.out.println("WARNING: userDetails가 null입니다! 비로그인 상태에서 결제함");
                 response.put("warning", "비로그인 상태에서 결제되었습니다. 주문 정보가 저장되지 않았습니다.");
             }
         } else {
@@ -131,6 +147,9 @@ public class PaymentController {
         int statusCode = response.containsKey("error") ? 400 : 200;
         return ResponseEntity.status(statusCode).body(response);
     }
+
+
+
     @GetMapping("/payment/checkout")
     public String checkout(
             @RequestParam(required = false) String orderId,
@@ -144,31 +163,13 @@ public class PaymentController {
         return "payment/checkout";
     }
     
-    // 상품 결제 확인 (주문 처리 포함)
-    @RequestMapping(value = "/confirm/order")
-    @ResponseBody
-    public ResponseEntity<JSONObject> confirmOrderPayment(@RequestBody String jsonBody) throws Exception {
-        JSONObject requestData = parseRequestData(jsonBody);
-        String orderId = (String) requestData.get("orderId");
-        String paymentKey = (String) requestData.get("paymentKey");
-        
-        // 토스페이먼츠 결제 승인 요청
-        JSONObject response = sendRequest(requestData, API_SECRET_KEY, "https://api.tosspayments.com/v1/payments/confirm");
-        
-        // 결제 성공 시 주문 상태 업데이트
-        if (!response.containsKey("error")) {
-            try {
-                orderService.confirmPayment(orderId, paymentKey, response);
-                response.put("orderProcessed", true);
-            } catch (Exception e) {
-                response.put("orderProcessed", false);
-                response.put("orderError", e.getMessage());
-            }
-        }
-        
-        int statusCode = response.containsKey("error") ? 400 : 200;
-        return ResponseEntity.status(statusCode).body(response);
-    }
+
+
+
+
+
+
+
 
     private JSONObject parseRequestData(String jsonBody) {
         try {

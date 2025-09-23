@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>회원가입 - IKEA</title>
+    <title>회원가입</title>
     <style>
         * {
             margin: 0;
@@ -232,7 +232,7 @@
 <body>
     <div class="signup-container">
         <div class="logo">
-            <a href="/">IKEA</a>
+            <a href="/">Home</a>
         </div>
         
         <h1>회원가입</h1>
@@ -292,33 +292,7 @@
                 <input type="text" id="detailAddress" name="detailAddress" 
                        placeholder="상세 주소" style="margin-top: 10px;">
             </div>
-            
-            <!-- 약관 동의 -->
-            <div class="checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="agreeAll">
-                    <span>전체 동의</span>
-                </label>
-            </div>
-            <div class="checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="agreeTerms" required>
-                    <span>(필수) 이용약관 동의</span>
-                </label>
-            </div>
-            <div class="checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="agreePrivacy" required>
-                    <span>(필수) 개인정보 처리방침 동의</span>
-                </label>
-            </div>
-            <div class="checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="agreeMarketing">
-                    <span>(선택) 마케팅 정보 수신 동의</span>
-                </label>
-            </div>
-            
+
             <!-- 가입 버튼 -->
             <button type="submit" class="submit-btn">회원가입</button>
         </form>
@@ -396,14 +370,7 @@
                 errorMsg.style.display = 'none';
             }
         });
-        
-        // 전체 동의
-        document.getElementById('agreeAll').addEventListener('change', function() {
-            const isChecked = this.checked;
-            document.getElementById('agreeTerms').checked = isChecked;
-            document.getElementById('agreePrivacy').checked = isChecked;
-            document.getElementById('agreeMarketing').checked = isChecked;
-        });
+
         
         // 폼 제출 전 유효성 검사
         document.getElementById('signupForm').addEventListener('submit', function(e) {

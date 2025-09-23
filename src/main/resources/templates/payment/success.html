@@ -44,10 +44,14 @@
 
   // 서버로 결제 승인에 필요한 결제 정보를 보내세요.
   async function confirm() {
+    // 세션 스토리지에서 선택된 카트 아이템 가져오기
+    const selectedCartItems = sessionStorage.getItem('selectedCartItems');
+    
     var requestData = {
       paymentKey: urlParams.get("paymentKey"),
       orderId: urlParams.get("orderId"),
       amount: urlParams.get("amount"),
+      selectedCartItems: selectedCartItems,  // 선택된 카트 아이템 ID 추가
     };
 
     // 결제 확인 및 주문 처리

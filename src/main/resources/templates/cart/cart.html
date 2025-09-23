@@ -473,15 +473,13 @@
                         
                         <div class="item-controls">
                             <div class="quantity-selector">
-                                <button class="quantity-btn" 
-                                        th:onclick="'updateQuantity(' + ${item.id} + ', ' + ${item.quantity} + ' - 1)'">−</button>
-                                <input type="number" class="quantity-input" 
+                                <button class="quantity-btn" th:onclick="'updateQuantity(' + ${item.id} + ', ' + ${item.quantity} + ' - 1)'">−</button>
+                                <input type="number" class="quantity-input"
                                        th:id="'quantity-' + ${item.id}"
-                                       th:value="${item.quantity}" 
+                                       th:value="${item.quantity}"
                                        min="1" 
                                        th:max="${item.product.stock}" readonly>
-                                <button class="quantity-btn" 
-                                        th:onclick="'updateQuantity(' + ${item.id} + ', ' + ${item.quantity} + ' + 1)'">+</button>
+                                <button class="quantity-btn" th:onclick="'updateQuantity(' + ${item.id} + ', ' + ${item.quantity} + ' + 1)'">+</button>
                             </div>
                             <button class="remove-btn" th:onclick="'removeItem(' + ${item.id} + ')'">삭제</button>
                         </div>
@@ -499,23 +497,13 @@
             <div class="order-summary">
                 <h2 class="summary-title">주문 요약</h2>
                 
-                <!-- 프로모션 -->
-                <div class="promotion-section">
-                    <div class="promotion-text">
-                        🎉 신규 회원 10% 할인 쿠폰 적용 가능
-                    </div>
-                </div>
-                
                 <div class="summary-row">
                     <span>선택 상품 (<span id="selectedCount">0</span>개)</span>
                     <span>₩<span id="selectedAmount">0</span></span>
                 </div>
                 <div class="summary-row">
-                    <span>배송비</span>
-                    <span id="deliveryFee">₩5,000</span>
-                </div>
-                <div class="summary-row">
                     <span>할인 금액</span>
+<!--                    FIXME-->
                     <span>₩0</span>
                 </div>
                 
@@ -527,8 +515,7 @@
                 <button class="checkout-btn" onclick="proceedCheckout()" id="checkoutBtn">
                     선택 상품 주문하기
                 </button>
-                
-                <a href="/products" class="continue-shopping">쇼핑 계속하기</a>
+
             </div>
         </div>
         
@@ -536,15 +523,16 @@
         <div class="empty-cart" th:if="${cart == null or cart.cartItems == null or cart.cartItems.isEmpty()}">
             <div class="empty-icon">🛒</div>
             <h2 class="empty-title">장바구니가 비어있습니다</h2>
-            <p class="empty-description">IKEA의 다양한 제품을 둘러보고 장바구니에 담아보세요!</p>
+            <p class="empty-description">다양한 제품을 둘러보고 장바구니에 담아보세요!</p>
             <a href="/products" class="shop-now-btn">쇼핑하러 가기</a>
         </div>
     </div>
     
     <script th:inline="javascript">
-        // 토스페이먼츠 설정 (실제 클라이언트 키로 교체 필요)
+        // 토스페이먼츠 설정
         const clientKey = [[${clientKey}]];
         const tossPayments = TossPayments(clientKey);
+        //TODO: 익명으로 변환해야함
         const payment = tossPayments.payment({customerKey: TossPayments.ANONYMOUS});
         
         // 페이지 로드 시 초기화
@@ -616,8 +604,8 @@
             }
         }
         
-        // 선택 상품 결제 진행 - 토스페이먼츠 결제창 바로 띄우기
-        async function proceedCheckout() {
+        // 선택 상품 주문 페이지로 이동
+        function proceedCheckout() {
             const checkboxes = document.querySelectorAll('.item-checkbox input[type="checkbox"]:checked');
             
             if (checkboxes.length === 0) {
@@ -625,66 +613,12 @@
                 return;
             }
             
-            // 선택된 아이템 정보 수집
-            const selectedItems = [];
-            let totalAmount = 0;
-            let orderName = '';
+            // 선택된 아이템 ID들을 쿼리 스트링으로 만듭니다.
+            const selectedItems = Array.from(checkboxes).map(cb => `items=${cb.dataset.itemId}`);
+            const queryString = '?' + selectedItems.join('&');
             
-            checkboxes.forEach((checkbox, index) => {
-                selectedItems.push(checkbox.dataset.itemId);
-                totalAmount += parseInt(checkbox.dataset.price);
-                
-                // 첫 번째 상품명 가져오기
-                if (index === 0) {
-                    const cartItem = checkbox.closest('.cart-item');
-                    const itemName = cartItem.querySelector('.item-name').textContent.trim();
-                    orderName = checkboxes.length > 1 
-                        ? `${itemName} 외 ${checkboxes.length - 1}건`
-                        : itemName;
-                }
-            });
-            
-            // 배송비 추가
-            const deliveryFee = totalAmount >= 50000 ? 0 : 5000;
-            totalAmount += deliveryFee;
-            
-            // 주문 ID 생성
-            const orderId = 'ORDER_' + Date.now();
-            
-            // 세션 스토리지에 선택된 아이템 저장 (성공 후 처리용)
-            sessionStorage.setItem('selectedCartItems', JSON.stringify(selectedItems));
-            sessionStorage.setItem('orderId', orderId);
-            
-            // 토스페이먼츠 결제창 바로 띄우기
-            try {
-                await payment.requestPayment({
-                    method: "CARD", // 카드 및 간편결제
-                    amount: {
-                        currency: "KRW",
-                        value: totalAmount,
-                    },
-                    orderId: orderId,
-                    orderName: orderName,
-                    successUrl: window.location.origin + "/payment/success",
-                    failUrl: window.location.origin + "/payment/fail",
-                    customerEmail: "customer@ikea.com",
-                    customerName: "IKEA 고객",
-                    card: {
-                        useEscrow: false,
-                        flowMode: "DEFAULT",
-                        useCardPoint: false,
-                        useAppCardOnly: false,
-                    },
-                });
-            } catch (error) {
-                console.error('결제 요청 실패:', error);
-                if (error.code === 'USER_CANCEL') {
-                    // 사용자가 결제를 취소한 경우
-                    console.log('결제가 취소되었습니다.');
-                } else {
-                    alert('결제 처리 중 오류가 발생했습니다.');
-                }
-            }
+            // 주문/결제 페이지로 이동합니다.
+            window.location.href = '/order/checkout' + queryString;
         }
         
         // 수량 업데이트

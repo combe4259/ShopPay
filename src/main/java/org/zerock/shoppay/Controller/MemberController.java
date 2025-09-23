@@ -65,6 +65,9 @@ public class MemberController {
     public boolean checkEmail(@RequestParam String email) {
         return !memberService.checkEmailDuplicate(email);
     }
+
+
+
     
     // 마이페이지
     @GetMapping("/mypage")
@@ -80,8 +83,8 @@ public class MemberController {
             // 대시보드 데이터
             model.addAttribute("orderCount", orders.size());
             model.addAttribute("wishlistCount", 0);
-            model.addAttribute("couponCount", 1);
-            model.addAttribute("points", 0);
+            //model.addAttribute("couponCount", 1);
+            //model.addAttribute("points", 0);
             model.addAttribute("recentOrders", orders.size() > 3 ? orders.subList(0, 3) : orders);
         }
         return "member/mypage";

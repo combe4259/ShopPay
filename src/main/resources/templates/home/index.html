@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IKEA Korea</title>
+    <title>Shop Pay</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@350;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/ikea-style.css">
     <link rel="stylesheet" href="/css/ikea-home.css">
@@ -16,8 +16,9 @@
     <div class="header">
         <div class="header-background">
             <div class="header-container">
-                <!-- IKEA Logo -->
+
                 <div class="ikea-logo">
+                    <!--TODO:흠-->
                     <a href="/ikea" style="text-decoration: none;">
                         <div style="background: #0058AB; color: #FBD914; padding: 8px 20px; border-radius: 50px; font-weight: bold; font-size: 24px;">
                             IKEA
@@ -38,8 +39,11 @@
                 <div class="navigation-links">
                     <!-- 비로그인 상태 -->
                     <th:block th:if="${#authorization.expression('!isAuthenticated()')}">
+                        <button class="signup-btn" onclick="location.href='/signup'">
+                            <span>회원가입</span>
+                        </button>
+
                         <button class="login-btn" onclick="location.href='/login'">
-                            <span style="margin-right: 5px;">👤</span>
                             <span>로그인</span>
                         </button>
                     </th:block>
@@ -47,7 +51,6 @@
                     <!-- 로그인 상태 -->
                     <th:block th:if="${#authorization.expression('isAuthenticated()')}">
                         <button class="login-btn" onclick="location.href='/mypage'">
-                            <span style="margin-right: 5px;">👤</span>
                             <span>마이페이지</span>
                         </button>
                         <button class="login-btn" onclick="location.href='/logout'" style="margin-left: 10px;">
@@ -67,6 +70,7 @@
     </div>
 
     <!-- Navigation -->
+    <!--    TODO-->
     <div class="nav-section">
         <div class="nav-divider"></div>
         <div class="tab-list">
@@ -119,7 +123,7 @@
                 <button class="filter-btn">가장 낮은 가격</button>
             </div>
 
-            <!-- Products Grid - Dynamic with Thymeleaf -->
+            <!-- Products Grid-->
             <div class="products-grid">
                 <!-- Thymeleaf 반복문으로 상품 표시 -->
                 <div th:each="product : ${products}" class="product-card" th:onclick="|location.href='/products/${product.id}'|">
@@ -136,25 +140,19 @@
                             <span class="currency">￦</span>
                             <span class="price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')}">0</span>
                         </div>
-                        <div class="original-price" th:if="${product.price < 100000}">
-                            기존가: ￦<span th:text="${#numbers.formatDecimal(product.price * 1.2, 0, 'COMMA', 0, 'POINT')}">0</span>
-                        </div>
+
                         <div class="rating-container">
                             <div class="stars">
-                                <div class="star filled"></div>
-                                <div class="star filled"></div>
-                                <div class="star filled"></div>
-                                <div class="star filled"></div>
-                                <div class="star filled"></div>
+                                <span>별점 구현</span>
                             </div>
-                            <span class="rating-count">(47)</span>
+                            <span class="rating-count">별점 개수 구현</span>
                         </div>
                         <div class="product-actions">
                             <button class="add-to-cart-btn">
-                                <span></span>
+                                <span>장바구니 구현</span>
                             </button>
                             <button class="wishlist-btn">
-                                <span></span>
+                                <span>위시리스트 구현</span>
                             </button>
                         </div>
                     </div>
@@ -162,8 +160,8 @@
                 
                 <!-- 빈 상태 표시 -->
                 <div th:if="${products == null or products.isEmpty()}" style="text-align: center; grid-column: 1 / -1; padding: 50px;">
-                    <p>IKEA 카테고리 상품이 없습니다.</p>
-                    <a href="/products" style="color: #0058A3;">모든 상품 보기</a>
+                    <p>상품이 없습니다.</p>
                 </div>
             </div>
         </div>
+</div>
