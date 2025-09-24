@@ -142,9 +142,16 @@ public class OrderController {
             cartItemsData.add(itemData);
         }
         
+        Map<String, Object> memberData = new HashMap<>();
+        if (member != null) {
+            memberData.put("email", member.getEmail());
+            memberData.put("name", member.getName());
+        }
+        
         model.addAttribute("member", member);
         model.addAttribute("cartItems", selectedItems);
         model.addAttribute("cartItemsJson", cartItemsData);
+        model.addAttribute("memberJson", memberData);
         model.addAttribute("subtotal", totalPrice);
         model.addAttribute("deliveryFee", deliveryFee);
         model.addAttribute("totalAmount", finalTotal);

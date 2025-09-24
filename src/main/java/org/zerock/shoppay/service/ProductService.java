@@ -90,6 +90,29 @@ public class ProductService {
         product.setStock(product.getStock() - quantity);
         productRepository.save(product);
     }
+
+    // 네이티브 쿼리를 이용한 재고 감소
+    @Transactional
+    public void decreaseStockWithNativeQuery(Long productId, Integer quantity) {
+        int updatedRows = productRepository.decreaseStockNative(productId);
+        if (updatedRows == 0) {
+            throw new RuntimeException("재고가 부족하거나 상품이 존재하지 않습니다.");
+        }
+    }
+
+    // 비관적 락을 이용한 재고 감소
+    @Transactional
+    public void decreaseStockWithPessimisticLock(Long productId, Integer quantity) {
+        Product product = productRepository.findByIdWithPessimisticLock(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        if (product.getStock() < quantity) {
+            throw new RuntimeException("재고가 부족하거나 상품이 존재하지 않습니다.");
+        }
+
+        product.setStock(product.getStock() - quantity);
+        productRepository.save(product);
+    }
     
     // 카테고리별 상품 조회 (페이지네이션)
     public Page<Product> getProductsByCategoryWithPagination(String categoryName, Pageable pageable) {
