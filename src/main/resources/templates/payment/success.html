@@ -44,28 +44,24 @@
 
   // 서버로 결제 승인에 필요한 결제 정보를 보내세요.
   async function confirm() {
+    // 세션 스토리지에서 선택된 카트 아이템 가져오기
+    const selectedCartItems = sessionStorage.getItem('selectedCartItems');
+    
     var requestData = {
       paymentKey: urlParams.get("paymentKey"),
       orderId: urlParams.get("orderId"),
       amount: urlParams.get("amount"),
+      selectedCartItems: selectedCartItems,  // 선택된 카트 아이템 ID 추가
     };
 
-    // 기존 결제 확인 (주문 처리 없음)
-    // const response = await fetch("/confirm/payment", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(requestData),
-    // });
-    
-    // 새로운 결제 확인 (주문 처리 포함)
-    const response = await fetch("/confirm/order", {
+    // 결제 확인 및 주문 처리
+    const response = await fetch("/confirm/payment", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(requestData),
+      credentials: "include"  // 세션 쿠키 포함
     });
 
     const json = await response.json();

@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>장바구니 - IKEA</title>
+    <!-- 토스페이먼츠 SDK -->
+    <script src="https://js.tosspayments.com/v2/standard"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f5f5;
+        }
+        
+        /* 헤더 */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 20px 0;
+        }
+        
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            background: #0058a3;
+            color: #fbd914;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-links a {
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        
+        /* 장바구니 컨테이너 */
+        .cart-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #111;
+        }
+        
+        /* 장바구니 레이아웃 */
+        .cart-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+        
+        /* 장바구니 아이템 섹션 */
+        .cart-items-section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+        }
+        
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #111;
+        }
+        
+        .cart-count {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .clear-cart-btn {
+            color: #e60023;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: underline;
+        }
+        
+        /* 장바구니 아이템 */
+        .cart-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+            position: relative;
+        }
+        
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cart-item.selected {
+            background: #f0f7ff;
+            margin: 0 -30px;
+            padding-left: 50px;
+            padding-right: 30px;
+        }
+        
+        .item-checkbox {
+            display: flex;
+            align-items: center;
+        }
+        
+        .item-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .item-image {
+            width: 120px;
+            height: 120px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .item-details {
+            flex: 1;
+        }
+        
+        .item-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111;
+            margin-bottom: 5px;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .item-name:hover {
+            text-decoration: underline;
+        }
+        
+        .item-description {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .item-stock {
+            font-size: 12px;
+            color: #04aa6d;
+            margin-bottom: 15px;
+        }
+        
+        .item-stock.low {
+            color: #ff9500;
+        }
+        
+        .item-stock.out {
+            color: #e60023;
+        }
+        
+        .item-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .quantity-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.2s;
+        }
+        
+        .quantity-btn:hover:not(:disabled) {
+            background: #f5f5f5;
+        }
+        
+        .quantity-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.3;
+        }
+        
+        .quantity-input {
+            width: 50px;
+            height: 36px;
+            border: none;
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .remove-btn {
+            color: #666;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: underline;
+        }
+        
+        .remove-btn:hover {
+            color: #e60023;
+        }
+        
+        .item-price {
+            text-align: right;
+            min-width: 100px;
+        }
+        
+        .price-current {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111;
+        }
+        
+        .price-original {
+            font-size: 14px;
+            color: #999;
+            text-decoration: line-through;
+            margin-top: 5px;
+        }
+        
+        /* 주문 요약 */
+        .order-summary {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .summary-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .summary-row.total {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #111;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .checkout-btn {
+            width: 100%;
+            padding: 18px;
+            background: #0058a3;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 20px;
+        }
+        
+        .checkout-btn:hover {
+            background: #004f8f;
+        }
+        
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .continue-shopping {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #0058a3;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .continue-shopping:hover {
+            text-decoration: underline;
+        }
+        
+        /* 프로모션 섹션 */
+        .promotion-section {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .promotion-text {
+            font-size: 14px;
+            color: #856404;
+        }
+        
+        /* 빈 장바구니 */
+        .empty-cart {
+            background: white;
+            border-radius: 8px;
+            padding: 80px 20px;
+            text-align: center;
+        }
+        
+        .empty-icon {
+            font-size: 80px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .empty-title {
+            font-size: 24px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .empty-description {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 30px;
+        }
+        
+        .shop-now-btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: #0058a3;
+            color: white;
+            border-radius: 40px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+        
+        .shop-now-btn:hover {
+            background: #004f8f;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .cart-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .order-summary {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .cart-item {
+                flex-direction: column;
+            }
+            
+            .item-image {
+                width: 100%;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 헤더 -->
+    <div class="header">
+        <div class="header-container">
+            <a href="/" class="logo">IKEA</a>
+            <div class="nav-links">
+                <a href="/">홈</a>
+                <a href="/products">제품</a>
+                <a href="/mypage">마이페이지</a>
+                <a href="/logout" th:if="${#authorization.expression('isAuthenticated()')}">로그아웃</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="cart-container">
+        <h1 class="page-title">장바구니</h1>
+        
+        <!-- 장바구니에 아이템이 있을 때 -->
+        <div class="cart-layout" th:if="${cart != null and cart.cartItems != null and !cart.cartItems.isEmpty()}">
+            <!-- 장바구니 아이템 섹션 -->
+            <div class="cart-items-section">
+                <div class="cart-header">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" checked>
+                        <label for="selectAll" style="cursor: pointer;">전체 선택</label>
+                        <span class="cart-count">
+                            장바구니 (<span th:text="${totalItems}">0</span>개)
+                        </span>
+                    </div>
+                    <button class="clear-cart-btn" onclick="clearCart()">전체 삭제</button>
+                </div>
+                
+                <!-- 장바구니 아이템 반복 -->
+                <div class="cart-item selected" th:each="item : ${cart.cartItems}" th:data-item-id="${item.id}">
+                    <div class="item-checkbox">
+                        <input type="checkbox" 
+                               th:id="'item-' + ${item.id}" 
+                               th:data-item-id="${item.id}"
+                               th:data-price="${item.totalPrice}"
+                               onchange="updateSelectedItems()"
+                               checked>
+                    </div>
+                    <div class="item-image">
+                        <img th:src="${item.product.imageUrl}" 
+                             th:alt="${item.product.name}"
+                             onerror="this.src='https://via.placeholder.com/120x120?text=No+Image'">
+                    </div>
+                    
+                    <div class="item-details">
+                        <a th:href="@{/products/{id}(id=${item.product.id})}" 
+                           class="item-name" th:text="${item.product.name}">상품명</a>
+                        <div class="item-description" th:text="${item.product.description}">상품 설명</div>
+                        <div class="item-stock" 
+                             th:class="${'item-stock ' + (item.product.stock < 5 ? 'low' : '')}"
+                             th:text="${item.product.stock > 0 ? '재고 ' + item.product.stock + '개' : '품절'}">
+                            재고 10개
+                        </div>
+                        
+                        <div class="item-controls">
+                            <div class="quantity-selector">
+                                <button class="quantity-btn" th:onclick="'updateQuantity(' + ${item.id} + ', ' + ${item.quantity} + ' - 1)'">−</button>
+                                <input type="number" class="quantity-input"
+                                       th:id="'quantity-' + ${item.id}"
+                                       th:value="${item.quantity}"
+                                       min="1" 
+                                       th:max="${item.product.stock}" readonly>
+                                <button class="quantity-btn" th:onclick="'updateQuantity(' + ${item.id} + ', ' + ${item.quantity} + ' + 1)'">+</button>
+                            </div>
+                            <button class="remove-btn" th:onclick="'removeItem(' + ${item.id} + ')'">삭제</button>
+                        </div>
+                    </div>
+                    
+                    <div class="item-price">
+                        <div class="price-current">
+                            ₩<span th:text="${#numbers.formatInteger(item.totalPrice, 3, 'COMMA')}">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 주문 요약 -->
+            <div class="order-summary">
+                <h2 class="summary-title">주문 요약</h2>
+                
+                <div class="summary-row">
+                    <span>선택 상품 (<span id="selectedCount">0</span>개)</span>
+                    <span>₩<span id="selectedAmount">0</span></span>
+                </div>
+                <div class="summary-row">
+                    <span>할인 금액</span>
+<!--                    FIXME-->
+                    <span>₩0</span>
+                </div>
+                
+                <div class="summary-row total">
+                    <span>총 결제 금액</span>
+                    <span>₩<span id="totalAmount">0</span></span>
+                </div>
+                
+                <button class="checkout-btn" onclick="proceedCheckout()" id="checkoutBtn">
+                    선택 상품 주문하기
+                </button>
+
+            </div>
+        </div>
+        
+        <!-- 빈 장바구니 -->
+        <div class="empty-cart" th:if="${cart == null or cart.cartItems == null or cart.cartItems.isEmpty()}">
+            <div class="empty-icon">🛒</div>
+            <h2 class="empty-title">장바구니가 비어있습니다</h2>
+            <p class="empty-description">다양한 제품을 둘러보고 장바구니에 담아보세요!</p>
+            <a href="/products" class="shop-now-btn">쇼핑하러 가기</a>
+        </div>
+    </div>
+    
+    <script th:inline="javascript">
+        // 토스페이먼츠 설정
+        const clientKey = [[${clientKey}]];
+        const tossPayments = TossPayments(clientKey);
+        //TODO: 익명으로 변환해야함
+        const payment = tossPayments.payment({customerKey: TossPayments.ANONYMOUS});
+        
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSelectedItems();
+        });
+        
+        // 전체 선택/해제
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            const checkboxes = document.querySelectorAll('.item-checkbox input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll.checked;
+            });
+            
+            updateSelectedItems();
+        }
+        
+        // 선택된 아이템 업데이트
+        function updateSelectedItems() {
+            const checkboxes = document.querySelectorAll('.item-checkbox input[type="checkbox"]:checked');
+            const allCheckboxes = document.querySelectorAll('.item-checkbox input[type="checkbox"]');
+            const selectAll = document.getElementById('selectAll');
+            
+            // 전체 선택 체크박스 상태 업데이트
+            selectAll.checked = checkboxes.length === allCheckboxes.length && allCheckboxes.length > 0;
+            
+            let totalPrice = 0;
+            let itemCount = 0;
+            
+            // 선택된 아이템 계산
+            checkboxes.forEach(checkbox => {
+                const price = parseInt(checkbox.dataset.price);
+                totalPrice += price;
+                itemCount++;
+                
+                // 선택된 아이템 스타일 변경
+                const cartItem = checkbox.closest('.cart-item');
+                cartItem.classList.add('selected');
+            });
+            
+            // 선택 해제된 아이템 스타일 변경
+            allCheckboxes.forEach(checkbox => {
+                if (!checkbox.checked) {
+                    const cartItem = checkbox.closest('.cart-item');
+                    cartItem.classList.remove('selected');
+                }
+            });
+            
+            // 배송비 계산
+            const deliveryFee = totalPrice >= 50000 ? 0 : 5000;
+            const finalTotal = totalPrice + deliveryFee;
+            
+            // UI 업데이트
+            document.getElementById('selectedCount').textContent = itemCount;
+            document.getElementById('selectedAmount').textContent = totalPrice.toLocaleString();
+            document.getElementById('deliveryFee').textContent = deliveryFee === 0 ? '무료' : '₩' + deliveryFee.toLocaleString();
+            document.getElementById('totalAmount').textContent = finalTotal.toLocaleString();
+            
+            // 주문 버튼 활성화/비활성화
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            if (itemCount === 0) {
+                checkoutBtn.disabled = true;
+                checkoutBtn.textContent = '상품을 선택해주세요';
+            } else {
+                checkoutBtn.disabled = false;
+                checkoutBtn.textContent = `선택 상품 주문하기 (${itemCount}개)`;
+            }
+        }
+        
+        // 선택 상품 주문 페이지로 이동
+        function proceedCheckout() {
+            const checkboxes = document.querySelectorAll('.item-checkbox input[type="checkbox"]:checked');
+            
+            if (checkboxes.length === 0) {
+                alert('주문할 상품을 선택해주세요.');
+                return;
+            }
+            
+            // 선택된 아이템 ID들을 쿼리 스트링으로 만듭니다.
+            const selectedItems = Array.from(checkboxes).map(cb => `items=${cb.dataset.itemId}`);
+            const queryString = '?' + selectedItems.join('&');
+            
+            // 주문/결제 페이지로 이동합니다.
+            window.location.href = '/order/checkout' + queryString;
+        }
+        
+        // 수량 업데이트
+        function updateQuantity(cartItemId, newQuantity) {
+            if (newQuantity < 1) return;
+            
+            fetch('/cart/update/' + cartItemId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'quantity=' + newQuantity
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+        
+        // 아이템 삭제
+        function removeItem(cartItemId) {
+            if (confirm('장바구니에서 삭제하시겠습니까?')) {
+                fetch('/cart/remove/' + cartItemId, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            }
+        }
+        
+        // 장바구니 비우기
+        function clearCart() {
+            if (confirm('장바구니를 비우시겠습니까?')) {
+                fetch('/cart/clear', {
+                    method: 'POST'
+                }).then(() => {
+                    location.reload();
+                });
+            }
+        }
+    </script>
+</body>
+</html>

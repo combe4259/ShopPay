@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .signup-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo a {
+            display: inline-block;
+            background: #0058a3;
+            color: #fbd914;
+            padding: 10px 30px;
+            border-radius: 50px;
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #111;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #484848;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .required {
+            color: #e60023;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #0058a3;
+        }
+        
+        .error-message {
+            color: #e60023;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .input-error {
+            border-color: #e60023 !important;
+        }
+        
+        .address-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .address-group input[type="text"] {
+            flex: 1;
+        }
+        
+        .btn-find-address {
+            padding: 12px 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-find-address:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+        
+        .password-strength {
+            margin-top: 5px;
+            font-size: 12px;
+        }
+        
+        .strength-weak { color: #e60023; }
+        .strength-medium { color: #ff9500; }
+        .strength-strong { color: #04aa6d; }
+        
+        .checkbox-group {
+            margin: 20px 0;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: start;
+            cursor: pointer;
+            font-size: 14px;
+            color: #484848;
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            margin-right: 8px;
+            margin-top: 2px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: #0058a3;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .submit-btn:hover {
+            background: #004f8f;
+        }
+        
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+        }
+        
+        .divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #e0e0e0;
+        }
+        
+        .divider span {
+            background: white;
+            padding: 0 15px;
+            position: relative;
+            color: #999;
+            font-size: 14px;
+        }
+        
+        .login-link {
+            text-align: center;
+            font-size: 14px;
+            color: #484848;
+        }
+        
+        .login-link a {
+            color: #0058a3;
+            text-decoration: none;
+        }
+        
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .alert-error {
+            background: #fef2f2;
+            color: #e60023;
+            border: 1px solid #fecaca;
+        }
+        
+        .alert-success {
+            background: #f0fdf4;
+            color: #04aa6d;
+            border: 1px solid #bbf7d0;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="logo">
+            <a href="/">Home</a>
+        </div>
+        
+        <h1>회원가입</h1>
+        
+        <!-- 에러 메시지 표시 -->
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        
+        <form th:action="@{/signup}" method="post" id="signupForm">
+            <!-- 이메일 -->
+            <div class="form-group">
+                <label for="email">이메일 <span class="required">*</span></label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="example@email.com">
+                <span class="error-message" id="emailError">이미 사용중인 이메일입니다.</span>
+            </div>
+            
+            <!-- 비밀번호 -->
+            <div class="form-group">
+                <label for="password">비밀번호 <span class="required">*</span></label>
+                <input type="password" id="password" name="password" required
+                       placeholder="8자 이상, 영문/숫자/특수문자 포함">
+                <div class="password-strength" id="passwordStrength"></div>
+            </div>
+            
+            <!-- 비밀번호 확인 -->
+            <div class="form-group">
+                <label for="passwordConfirm">비밀번호 확인 <span class="required">*</span></label>
+                <input type="password" id="passwordConfirm" name="passwordConfirm" required>
+                <span class="error-message" id="passwordError">비밀번호가 일치하지 않습니다.</span>
+            </div>
+            
+            <!-- 이름 -->
+            <div class="form-group">
+                <label for="name">이름 <span class="required">*</span></label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <!-- 전화번호 -->
+            <div class="form-group">
+                <label for="phone">전화번호</label>
+                <input type="tel" id="phone" name="phone" 
+                       placeholder="010-1234-5678">
+            </div>
+            
+            <!-- 주소 -->
+            <div class="form-group">
+                <label for="zipCode">주소</label>
+                <div class="address-group">
+                    <input type="text" id="zipCode" name="zipCode" 
+                           placeholder="우편번호" readonly>
+                    <button type="button" class="btn-find-address" onclick="findAddress()">
+                        주소 찾기
+                    </button>
+                </div>
+                <input type="text" id="address" name="address" 
+                       placeholder="기본 주소" readonly>
+                <input type="text" id="detailAddress" name="detailAddress" 
+                       placeholder="상세 주소" style="margin-top: 10px;">
+            </div>
+
+            <!-- 가입 버튼 -->
+            <button type="submit" class="submit-btn">회원가입</button>
+        </form>
+        
+        <div class="divider">
+            <span>또는</span>
+        </div>
+        
+        <div class="login-link">
+            이미 회원이신가요? <a href="/login">로그인</a>
+        </div>
+    </div>
+    
+    <!-- 다음 우편번호 API -->
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script>
+        // 주소 찾기
+        function findAddress() {
+            new daum.Postcode({
+                oncomplete: function(data) {
+                    document.getElementById('zipCode').value = data.zonecode;
+                    document.getElementById('address').value = data.roadAddress;
+                    document.getElementById('detailAddress').focus();
+                }
+            }).open();
+        }
+        
+        // 이메일 중복 체크
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value;
+            if (email) {
+                fetch('/check-email?email=' + email)
+                    .then(response => response.json())
+                    .then(isAvailable => {
+                        const errorMsg = document.getElementById('emailError');
+                        if (!isAvailable) {
+                            this.classList.add('input-error');
+                            errorMsg.style.display = 'block';
+                        } else {
+                            this.classList.remove('input-error');
+                            errorMsg.style.display = 'none';
+                        }
+                    });
+            }
+        });
+        
+        // 비밀번호 강도 체크
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const strengthDiv = document.getElementById('passwordStrength');
+            
+            if (password.length < 8) {
+                strengthDiv.textContent = '비밀번호가 너무 짧습니다';
+                strengthDiv.className = 'password-strength strength-weak';
+            } else if (!/(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
+                strengthDiv.textContent = '보통 강도';
+                strengthDiv.className = 'password-strength strength-medium';
+            } else {
+                strengthDiv.textContent = '강력한 비밀번호';
+                strengthDiv.className = 'password-strength strength-strong';
+            }
+        });
+        
+        // 비밀번호 확인
+        document.getElementById('passwordConfirm').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const passwordConfirm = this.value;
+            const errorMsg = document.getElementById('passwordError');
+            
+            if (passwordConfirm && password !== passwordConfirm) {
+                this.classList.add('input-error');
+                errorMsg.style.display = 'block';
+            } else {
+                this.classList.remove('input-error');
+                errorMsg.style.display = 'none';
+            }
+        });
+
+        
+        // 폼 제출 전 유효성 검사
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('passwordConfirm').value;
+            
+            if (password !== passwordConfirm) {
+                e.preventDefault();
+                alert('비밀번호가 일치하지 않습니다.');
+                return;
+            }
+            
+            if (password.length < 8) {
+                e.preventDefault();
+                alert('비밀번호는 8자 이상이어야 합니다.');
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

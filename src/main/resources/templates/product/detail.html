@@ -3,131 +3,676 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${product.name}">상품 상세</title>
-    <script src="https://js.tosspayments.com/v2/standard"></script>
+    <title th:text="${product.name + ' - IKEA'}">상품명 - IKEA</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .container {
-            max-width: 1000px;
+        
+        body {
+            font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #fff;
+            color: #111;
+        }
+        
+        /* 헤더 네비게이션 */
+        .breadcrumb {
+            padding: 20px 40px;
+            font-size: 12px;
+            color: #666;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .breadcrumb a {
+            color: #666;
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .breadcrumb span {
+            margin: 0 8px;
+        }
+        
+        /* 메인 컨테이너 */
+        .product-container {
+            max-width: 1400px;
             margin: 0 auto;
-            background: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .product-detail {
+            padding: 40px 20px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            gap: 60px;
         }
-        .product-image {
+        
+        /* 이미지 섹션 */
+        .image-section {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+        
+        .main-image-container {
+            position: relative;
             width: 100%;
-            height: 400px;
-            background-color: #f0f0f0;
+            padding-top: 100%;
+            background: #f5f5f5;
             border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .main-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .image-thumbnails {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
+            gap: 10px;
+            margin-top: 20px;
         }
-        .product-info h1 {
-            margin-top: 0;
-            color: #333;
-        }
-        .price {
-            font-size: 28px;
-            color: #0066ff;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        .description {
-            color: #666;
-            line-height: 1.6;
-            margin: 20px 0;
-        }
-        .stock-info {
-            padding: 10px;
-            background-color: #f9f9f9;
+        
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            border: 2px solid transparent;
             border-radius: 4px;
-            margin: 20px 0;
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.2s;
         }
-        .quantity-selector {
+        
+        .thumbnail:hover {
+            border-color: #0058a3;
+        }
+        
+        .thumbnail.active {
+            border-color: #0058a3;
+        }
+        
+        .thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* 정보 섹션 */
+        .info-section {
+            padding-top: 10px;
+        }
+        
+        .product-header {
+            margin-bottom: 30px;
+        }
+        
+        .product-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+        
+        .product-subtitle {
+            font-size: 16px;
+            color: #484848;
+            margin-bottom: 15px;
+        }
+        
+        .rating-section {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin: 20px 0;
+            margin-bottom: 20px;
         }
-        .quantity-selector button {
-            width: 40px;
-            height: 40px;
-            border: 1px solid #ddd;
-            background: white;
-            cursor: pointer;
-            font-size: 18px;
+        
+        .stars {
+            display: flex;
+            gap: 2px;
         }
-        .quantity-selector input {
-            width: 60px;
-            height: 40px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        
+        .star {
+            color: #ffcc00;
             font-size: 16px;
-            font-weight: bold;
+        }
+        
+        .rating-text {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .price-section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .price-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .price {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+        }
+        
+        .price-currency {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .price-amount {
+            font-size: 32px;
+            font-weight: 700;
+        }
+        
+        .price-info {
+            font-size: 12px;
+            color: #666;
             margin-top: 10px;
         }
-        .btn-buy {
-            background-color: #0066ff;
-            color: white;
+        
+        /* 옵션 섹션 */
+        .options-section {
+            margin-bottom: 30px;
         }
-        .btn-back {
-            background-color: #f0f0f0;
-            color: #333;
-            text-decoration: none;
-            display: inline-block;
+        
+        .option-group {
+            margin-bottom: 25px;
+        }
+        
+        .option-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .size-options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .size-option {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .size-option:hover {
+            border-color: #999;
+        }
+        
+        .size-option.selected {
+            border-color: #0058a3;
+            background: #f0f7ff;
+        }
+        
+        .color-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-option.selected {
+            border-color: #0058a3;
+        }
+        
+        .color-option img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        /* 수량 선택 */
+        .quantity-section {
+            margin-bottom: 30px;
+        }
+        
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            width: fit-content;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .quantity-btn {
+            width: 48px;
+            height: 48px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-size: 20px;
+            color: #666;
+            transition: background 0.2s;
+        }
+        
+        .quantity-btn:hover:not(:disabled) {
+            background: #f5f5f5;
+        }
+        
+        .quantity-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.3;
+        }
+        
+        .quantity-input {
+            width: 60px;
+            height: 48px;
+            border: none;
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
             text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        /* 버튼 섹션 */
+        .button-section {
+            margin-bottom: 30px;
+        }
+        
+        .add-to-bag-btn {
+            width: 100%;
+            padding: 20px;
+            background: #0058a3;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .add-to-bag-btn:hover {
+            background: #004f8f;
+        }
+        
+        .add-to-bag-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .wishlist-btn {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .wishlist-btn:hover {
+            border-color: #999;
+            background: #f5f5f5;
+        }
+        
+        /* 배송 정보 */
+        .delivery-section {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        
+        .delivery-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .delivery-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .delivery-option:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .delivery-info {
+            flex: 1;
+        }
+        
+        .delivery-method {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .delivery-details {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .delivery-price {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* 제품 정보 */
+        .product-details {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .details-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .details-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #484848;
+            margin-bottom: 20px;
+        }
+        
+        .details-specs {
+            margin-top: 30px;
+        }
+        
+        .spec-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .spec-label {
+            width: 150px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .spec-value {
+            flex: 1;
+            font-size: 14px;
+            color: #111;
+        }
+        
+        /* 재고 알림 */
+        .stock-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 4px;
+        }
+        
+        .stock-icon {
+            color: #856404;
+        }
+        
+        .stock-text {
+            font-size: 14px;
+            color: #856404;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .product-container {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            
+            .image-section {
+                position: relative;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .product-container {
+                padding: 20px;
+            }
+            
+            .product-title {
+                font-size: 28px;
+            }
+            
+            .price-amount {
+                font-size: 24px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="product-detail">
-            <div class="product-image">
-                <span th:if="${product.imageUrl == null}">이미지 없음</span>
-                <img th:if="${product.imageUrl != null}" th:src="${product.imageUrl}" alt="상품 이미지" style="width: 100%; height: 100%; object-fit: cover;">
+    <!-- 네비게이션 -->
+    <div class="breadcrumb">
+        <a href="/">홈</a>
+        <span>></span>
+        <a href="/products">제품</a>
+        <span>></span>
+        <a th:href="@{/products/category/{category}(category=${product.category?.name})}" 
+           th:text="${product.category?.name}">카테고리</a>
+        <span>></span>
+        <span th:text="${product.name}">상품명</span>
+    </div>
+    
+    <!-- 메인 컨테이너 -->
+    <div class="product-container">
+        <!-- 이미지 섹션 -->
+        <div class="image-section">
+            <div class="main-image-container">
+                <img class="main-image" 
+                     th:src="${product.imageUrl != null ? product.imageUrl : 'https://via.placeholder.com/600x600?text=No+Image'}"
+                     th:alt="${product.name}">
+            </div>
+            <div class="image-thumbnails">
+                <div class="thumbnail active">
+                    <img th:src="${product.imageUrl != null ? product.imageUrl : 'https://via.placeholder.com/80x80?text=1'}"
+                         th:alt="${product.name}">
+                </div>
+                <div class="thumbnail">
+                    <img src="https://via.placeholder.com/80x80?text=2" alt="이미지 2">
+                </div>
+                <div class="thumbnail">
+                    <img src="https://via.placeholder.com/80x80?text=3" alt="이미지 3">
+                </div>
+                <div class="thumbnail">
+                    <img src="https://via.placeholder.com/80x80?text=4" alt="이미지 4">
+                </div>
+            </div>
+        </div>
+        
+        <!-- 정보 섹션 -->
+        <div class="info-section">
+            <!-- 제품 헤더 -->
+            <div class="product-header">
+                <h1 class="product-title" th:text="${product.name}">MALM 말름</h1>
+                <p class="product-subtitle" th:text="${product.description}">침대프레임, 높은형, 화이트, 180x200 cm</p>
+                
+                <div class="rating-section">
+                    <div class="stars">
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                        <span class="star">★</span>
+                        <span class="star">☆</span>
+                    </div>
+                    <span class="rating-text">4.3 (274)</span>
+                </div>
             </div>
             
-            <div class="product-info">
-                <h1 th:text="${product.name}">상품명</h1>
-                <div class="price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + '원'">0원</div>
-                
-                <div class="description" th:text="${product.description}">
-                    상품 설명이 없습니다.
+            <!-- 가격 섹션 -->
+            <div class="price-section">
+                <div class="price-label">일반 가격</div>
+                <div class="price">
+                    <span class="price-currency">₩</span>
+                    <span class="price-amount" th:text="${#numbers.formatInteger(product.price, 3, 'COMMA')}">299,000</span>
+                </div>
+                <div class="price-info">
+                    IKEA Family 가격은 매장에서 확인하세요
+                </div>
+            </div>
+            
+            <!-- 재고 정보 -->
+            <div class="stock-info" th:if="${product.stock < 10}">
+                <span class="stock-icon">⚠️</span>
+                <span class="stock-text">
+                    재고 <span th:text="${product.stock}">5</span>개 남음
+                </span>
+            </div>
+            
+            <!-- 옵션 섹션 -->
+            <div class="options-section">
+                <!-- 사이즈 선택 -->
+                <div class="option-group">
+                    <label class="option-label">사이즈 선택</label>
+                    <div class="size-options">
+                        <button class="size-option">120x200 cm</button>
+                        <button class="size-option">140x200 cm</button>
+                        <button class="size-option selected">180x200 cm</button>
+                        <button class="size-option">200x200 cm</button>
+                    </div>
                 </div>
                 
-                <div class="stock-info">
-                    <strong>재고 수량:</strong> <span th:text="${product.stock} + '개'" id="stock">0개</span>
+                <!-- 색상 선택 -->
+                <div class="option-group">
+                    <label class="option-label">색상 선택</label>
+                    <div class="color-options">
+                        <div class="color-option selected" style="background: white; border: 2px solid #ddd;">
+                        </div>
+                        <div class="color-option" style="background: #333;">
+                        </div>
+                        <div class="color-option" style="background: #8B4513;">
+                        </div>
+                    </div>
                 </div>
-                
+            </div>
+            
+            <!-- 수량 선택 -->
+            <div class="quantity-section">
+                <label class="option-label">수량</label>
                 <div class="quantity-selector">
-                    <label>구매 수량:</label>
-                    <button onclick="decreaseQuantity()">-</button>
-                    <input type="number" id="quantity" value="1" min="1" th:max="${product.stock}">
-                    <button onclick="increaseQuantity()">+</button>
+                    <button class="quantity-btn" onclick="decreaseQuantity()">−</button>
+                    <input type="number" class="quantity-input" id="quantity" value="1" min="1" th:max="${product.stock}">
+                    <button class="quantity-btn" onclick="increaseQuantity()">+</button>
+                </div>
+            </div>
+            
+            <!-- 버튼 섹션 -->
+            <div class="button-section">
+                <button class="add-to-bag-btn" onclick="addToCart()">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 7h-3V6a4 4 0 0 0-8 0v1H5a1 1 0 0 0-1 1v11a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V8a1 1 0 0 0-1-1zM10 6a2 2 0 0 1 4 0v1h-4V6z"/>
+                    </svg>
+                    장바구니에 추가
+                </button>
+                <button class="wishlist-btn">
+                    ♡ 위시리스트에 추가
+                </button>
+            </div>
+            
+            <!-- 배송 정보 -->
+            <div class="delivery-section">
+                <div class="delivery-title">배송 옵션</div>
+                
+                <div class="delivery-option">
+                    <div class="delivery-info">
+                        <div class="delivery-method">🚚 배송</div>
+                        <div class="delivery-details">
+                            2-3일 이내 배송<br>
+                            서울 기준
+                        </div>
+                    </div>
+                    <div class="delivery-price">₩5,000</div>
                 </div>
                 
-                <button class="btn btn-buy" onclick="requestPayment()">구매하기</button>
-                <a href="/products" class="btn btn-back">목록으로</a>
+                <div class="delivery-option">
+                    <div class="delivery-info">
+                        <div class="delivery-method">🏪 매장 픽업</div>
+                        <div class="delivery-details">
+                            재고 있음<br>
+                            고양점
+                        </div>
+                    </div>
+                    <div class="delivery-price">무료</div>
+                </div>
+            </div>
+            
+            <!-- 제품 상세 정보 -->
+            <div class="product-details">
+                <h2 class="details-title">제품 정보</h2>
+                <div class="details-content">
+                    <p th:text="${product.description}">
+                        깔끔한 디자인의 침대프레임으로 침실을 모던하고 세련되게 연출할 수 있습니다.
+                        높은 침대프레임은 침대 아래 수납공간을 제공하여 공간 활용도를 높입니다.
+                    </p>
+                </div>
+                
+                <div class="details-specs">
+                    <div class="spec-row">
+                        <div class="spec-label">제품 번호</div>
+                        <div class="spec-value" th:text="${'004.048.' + product.id}">004.048.04</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-label">소재</div>
+                        <div class="spec-value">파티클보드, 멜라민 포일</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-label">관리 방법</div>
+                        <div class="spec-value">부드러운 천으로 닦아주세요</div>
+                    </div>
+                    <div class="spec-row">
+                        <div class="spec-label">패키지 수</div>
+                        <div class="spec-value">3개</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -139,10 +684,6 @@
             price: [[${product.price}]],
             stock: [[${product.stock}]]
         };
-        
-        const clientKey = [[${@environment.getProperty('toss.client.key')}]];
-        const tossPayments = TossPayments(clientKey);
-        const payment = tossPayments.payment({customerKey: TossPayments.ANONYMOUS});
         
         function decreaseQuantity() {
             const input = document.getElementById('quantity');
@@ -158,54 +699,69 @@
             }
         }
         
-        async function requestPayment() {
+        function addToCart() {
             const quantity = parseInt(document.getElementById('quantity').value);
-            const totalAmount = product.price * quantity;
             
-            // 1. 먼저 주문 생성
-            const orderResponse = await fetch('/order/create', {
+            fetch('/cart/add', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: new URLSearchParams({
-                    productId: product.id,
-                    quantity: quantity,
-                    customerName: '김토스',  // 실제로는 사용자 입력 받아야 함
-                    customerEmail: 'customer@example.com',
-                    customerPhone: '010-1234-5678'
-                })
-            });
-            
-            const orderData = await orderResponse.json();
-            
-            if (!orderData.success) {
-                alert('주문 생성 실패: ' + orderData.message);
-                return;
-            }
-            
-            // 2. 토스페이먼츠 결제 요청
-            await payment.requestPayment({
-                method: "CARD",
-                amount: {
-                    currency: "KRW",
-                    value: totalAmount,
-                },
-                orderId: orderData.orderId,  // 서버에서 생성한 주문 ID 사용
-                orderName: product.name + (quantity > 1 ? ' 외 ' + (quantity - 1) + '개' : ''),
-                successUrl: window.location.origin + "/payment/success.html",
-                failUrl: window.location.origin + "/payment/fail.html",
-                customerEmail: 'customer@example.com',
-                customerName: '김토스',
-                customerMobilePhone: '01012345678',
-                card: {
-                    useEscrow: false,
-                    flowMode: "DEFAULT",
-                    useCardPoint: false,
-                    useAppCardOnly: false,
-                },
+                body: 'productId=' + product.id + '&quantity=' + quantity
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (confirm(data.message + '\n장바구니로 이동하시겠습니까?')) {
+                        location.href = '/cart';
+                    }
+                    // 장바구니 아이콘 업데이트 (옵션)
+                    updateCartCount(data.cartItemCount);
+                } else {
+                    alert(data.message);
+                    if (data.message.includes('로그인')) {
+                        location.href = '/login';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('장바구니 추가 중 오류가 발생했습니다.');
             });
         }
+        
+        function updateCartCount(count) {
+            // 헤더의 장바구니 카운트 업데이트 (구현 필요시)
+            const cartCountElement = document.querySelector('.cart-count');
+            if (cartCountElement) {
+                cartCountElement.textContent = count;
+            }
+        }
+        
+        // 썸네일 클릭 이벤트
+        document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
+            thumb.addEventListener('click', function() {
+                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                // TODO: 메인 이미지 변경 로직
+            });
+        });
+        
+        // 사이즈 옵션 선택
+        document.querySelectorAll('.size-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.size-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+        
+        // 색상 옵션 선택
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
     </script>
 </body>
 </html>

@@ -110,4 +110,14 @@ public class OrderService {
     public Optional<Order> findByPaymentKey(String paymentKey) {
         return orderRepository.findByPaymentKey(paymentKey);
     }
+    
+    // 주문 저장 (장바구니에서 주문 생성 시)
+    @Transactional
+    public Order saveOrder(Order order) {
+        // 재고 감소
+        for (OrderItem item : order.getOrderItems()) {
+            productService.decreaseStock(item.getProduct().getId(), item.getQuantity());
+        }
+        return orderRepository.save(order);
+    }
 }

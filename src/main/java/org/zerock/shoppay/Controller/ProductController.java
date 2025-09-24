@@ -1,6 +1,10 @@
 package org.zerock.shoppay.Controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -34,20 +38,49 @@ public class ProductController {
         return "product/detail";
     }
     
-    // 카테고리별 상품 목록 (ID로 조회)
-    @GetMapping("/category/{categoryId}")
-    public String productsByCategory(@PathVariable Long categoryId, Model model) {
-        List<Product> products = productService.getProductsByCategoryId(categoryId);
-        model.addAttribute("products", products);
-        model.addAttribute("categoryId", categoryId);
-        return "product/list";
-    }
-    @GetMapping("/category")
-    public String productsByCategory(@RequestParam String categoryName,Model model) {
-        List<Product> products = productService.getProductsByCategory(categoryName);
-        model.addAttribute("products", products);
+//    카테고리별 상품 목록 (ID로 조회)
+//    @GetMapping("/category/{categoryId}")
+//    public String productsByCategory(@PathVariable Long categoryId, Model model) {
+//        List<Product> products = productService.getProductsByCategoryId(categoryId);
+//        model.addAttribute("products", products);
+//        model.addAttribute("categoryId", categoryId);
+//        return "product/list";
+//    }
+    @GetMapping("/category/{categoryName}")
+    public String productsByCategory(
+            @PathVariable String categoryName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "createdAt") String sort,
+            @RequestParam(defaultValue = "DESC") String direction,
+            Model model) {
+        
+        // 정렬 방향 설정
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("ASC") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        
+        // Pageable 객체 생성
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+        
+        // 페이지네이션된 상품 조회
+        Page<Product> productPage = productService.getProductsByCategoryWithPagination(categoryName, pageable);
+        
+        model.addAttribute("products", productPage.getContent());
+        model.addAttribute("productPage", productPage);
         model.addAttribute("category", categoryName);
-        return "product/list";
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("totalItems", productPage.getTotalElements());
+        model.addAttribute("size", size);
+        model.addAttribute("sort", sort);
+        model.addAttribute("direction", direction);
+        
+        // 페이지 번호 목록 생성 (현재 페이지 기준 앞뒤 5개)
+        int startPage = Math.max(0, page - 5);
+        int endPage = Math.min(productPage.getTotalPages() - 1, page + 5);
+        model.addAttribute("startPage", startPage);
+        model.addAttribute("endPage", endPage);
+        
+        return "product/category";  // IKEA 스타일 카테고리 페이지
     }
     
     // 상품 검색
@@ -56,7 +89,7 @@ public class ProductController {
         List<Product> products = productService.searchProducts(keyword);
         model.addAttribute("products", products);
         model.addAttribute("keyword", keyword);
-        return "product/list";
+        return "home/index";
     }
     
 

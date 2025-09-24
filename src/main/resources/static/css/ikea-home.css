@@ -105,6 +105,22 @@
     gap: 8px;
     align-items: center;
 }
+.signup-btn {
+    display: flex;
+    width: 177px;
+    height: 40px;
+    padding: 8px 24px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border-radius: 64px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    color: #111;
+    font-weight: 400;
+}
 
 .login-btn {
     display: flex;
