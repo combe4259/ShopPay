@@ -23,7 +23,7 @@ public class Product {
     private Long id;
 
     @Version
-    private Long version;
+    private Long version = 0L;
     
     @Column(nullable = false, length = 100)
     private String name;
