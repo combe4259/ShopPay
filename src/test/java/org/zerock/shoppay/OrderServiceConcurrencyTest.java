@@ -69,12 +69,10 @@ public class OrderServiceConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try{
-                    //productService.decreaseStock(productId, 1);
-                    //productService.decreaseStockWithNativeQuery(productId,1);
-                    //productService.decreaseStockWithPessimisticLock(productId,1);
                     productService.decreaseStock(productId, 1);
-                }catch (RuntimeException e){
-                    System.out.println("재고 부족 예외"+e.getMessage());
+                    System.out.println("재고 감소 성공");
+                }catch (Exception e){
+                    System.out.println("예외 발생: " + e.getClass().getSimpleName() + " - " + e.getMessage());
                 }
                 finally {
                     latch.countDown();
@@ -85,6 +83,10 @@ public class OrderServiceConcurrencyTest {
         latch.await();
 
         Product finalProduct = productRepository.findById(productId).orElseThrow();
+        System.out.println("최종 재고: " + finalProduct.getStock());
+        System.out.println("최종 버전: " + finalProduct.getVersion());
+        
+        // 낙관적 락이 제대로 동작했다면 재고는 0이어야 함
         assertEquals(0, finalProduct.getStock());
 
     }
