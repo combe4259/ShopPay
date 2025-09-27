@@ -438,21 +438,21 @@
         <!-- 페이지네이션 -->
         <div class="pagination" th:if="${totalPages > 1}">
             <!-- 이전 페이지 -->
-            <a th:href="@{/products/category/{category}(category=${category}, page=${currentPage - 1}, size=${size}, sort=${sort}, direction=${direction})}"
+            <a th:href="@{/products(category=(${category != 'All' ? category : ''}), page=${currentPage - 1}, size=${size}, sort=${sort}, direction=${direction})}"
                th:class="${'page-link prev ' + (currentPage == 0 ? 'disabled' : '')}"
                th:if="${currentPage > 0}">
                 <span>←</span>
             </a>
-            
+
             <!-- 페이지 번호들 -->
             <th:block th:each="pageNum : ${#numbers.sequence(startPage, endPage)}">
-                <a th:href="@{/products/category/{category}(category=${category}, page=${pageNum}, size=${size}, sort=${sort}, direction=${direction})}"
+                <a th:href="@{/products(category=(${category != 'All' ? category : ''}), page=${pageNum}, size=${size}, sort=${sort}, direction=${direction})}"
                    th:class="${'page-link ' + (pageNum == currentPage ? 'active' : '')}"
                    th:text="${pageNum + 1}">1</a>
             </th:block>
-            
+
             <!-- 다음 페이지 -->
-            <a th:href="@{/products/category/{category}(category=${category}, page=${currentPage + 1}, size=${size}, sort=${sort}, direction=${direction})}"
+            <a th:href="@{/products(category=(${category != 'All' ? category : ''}), page=${currentPage + 1}, size=${size}, sort=${sort}, direction=${direction})}"
                th:class="${'page-link next ' + (currentPage >= totalPages - 1 ? 'disabled' : '')}"
                th:if="${currentPage < totalPages - 1}">
                 <span>→</span>

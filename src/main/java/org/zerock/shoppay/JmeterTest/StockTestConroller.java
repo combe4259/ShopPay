@@ -1,4 +1,4 @@
-package org.zerock.shoppay.Controller.JmeterTest;
+package org.zerock.shoppay.JmeterTest;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

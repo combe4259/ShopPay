@@ -35,6 +35,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
+    //Global Catch-All handler로 포괄적인 예외 처리를 진행
+    //GlobalExceptionHandler에서 명시되지 않는 예외 이외의 모든 예외는 해당 메서드를 통해 처리 - Exception.class가 모든 예외의 최위 클래스
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception e) {
         // 중요한 정보: 실제 운영 환경에서는 전체 예외 스택 트레이스를 로깅하여 디버깅에 사용해야 합니다.

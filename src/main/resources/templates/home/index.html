@@ -75,7 +75,9 @@
         <div class="nav-divider"></div>
         <div class="tab-list">
             <div class="tab active">
-                <span class="tab-text">모든 제품</span>
+                <a th:href="@{/products}" style="text-decoration: none; color: inherit;">
+                    <span class="tab-text">모든 제품</span>
+                </a>
             </div>
             <div class="tab">
                 <span class="tab-text">공간별 쇼핑하기</span>
@@ -103,7 +105,7 @@
                 <div th:each="category : ${categories}" class="category-item">
                     <img class="category-image" th:src="${category.image_url}">
                     <div class="category-label">
-                        <a th:href="@{/products/category/{categoryName}(categoryName=${category.name})}" th:text="${category.name}">카테고리명</a>
+                        <a th:href="@{/products(category=${category.name})}" th:text="${category.name}">카테고리명</a>
                     </div>
                 </div>
             </div>
