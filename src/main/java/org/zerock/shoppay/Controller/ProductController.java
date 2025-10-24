@@ -14,12 +14,15 @@ import org.zerock.shoppay.service.ProductService;
 
 import java.util.List;
 
+import org.zerock.shoppay.repository.CategoryRepository;
+
 @Controller
 @RequestMapping("/products")
 @RequiredArgsConstructor
 public class ProductController {
     
     private final ProductService productService;
+    private final CategoryRepository categoryRepository;
     
 
     // 상품 상세 페이지
@@ -48,11 +51,13 @@ public class ProductController {
 
         // 통합된 서비스 메서드 호출
         Page<Product> productPage = productService.findProducts(category, pageable);
+        List<Category> categories = categoryRepository.findAll();
 
         model.addAttribute("products", productPage.getContent());
         model.addAttribute("productPage", productPage);
         // category가 null일 경우 'All'을, 아니면 해당 카테고리 이름을 모델에 추가
         model.addAttribute("category", category != null ? category : "All");
+        model.addAttribute("categories", categories);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("totalItems", productPage.getTotalElements());

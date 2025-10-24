@@ -1,6 +1,7 @@
 package org.zerock.shoppay.Controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,7 +19,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
+@RequestMapping("/cart")
 @RequiredArgsConstructor
+@Slf4j
 public class CartController {
     
     private final CartService cartService;
@@ -28,7 +31,7 @@ public class CartController {
     private String clientKey;
     
     // 장바구니 페이지
-    @GetMapping("/cart")
+    @GetMapping
     public String cart(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         if (userDetails != null) {
             Member member = memberService.findByEmail(userDetails.getUsername());
@@ -43,7 +46,7 @@ public class CartController {
     }
     
     // 장바구니에 상품 추가 (AJAX)
-    @PostMapping("/cart/add")
+    @PostMapping("/add")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> addToCart(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -76,7 +79,7 @@ public class CartController {
     }
     
     // 장바구니 아이템 수량 변경 (AJAX)
-    @PostMapping("/cart/update/{cartItemId}")
+    @PostMapping("/update/{cartItemId}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateQuantity(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -110,22 +113,26 @@ public class CartController {
     }
     
     // 장바구니 아이템 삭제 (AJAX)
-    @DeleteMapping("/cart/remove/{cartItemId}")
+    @DeleteMapping("/remove/{cartItemId}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> removeFromCart(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long cartItemId) {
         
+        log.info("Attempting to remove cart item. ID: {}", cartItemId);
         Map<String, Object> response = new HashMap<>();
         
         try {
             if (userDetails == null) {
+                log.warn("Unauthorized attempt to remove cart item. User is not logged in.");
                 response.put("success", false);
                 response.put("message", "로그인이 필요합니다.");
                 return ResponseEntity.ok(response);
             }
             
+            log.info("User '{}' is attempting to remove cart item ID: {}", userDetails.getUsername(), cartItemId);
             cartService.removeFromCart(cartItemId);
+            log.info("Successfully called cartService.removeFromCart for item ID: {}", cartItemId);
             
             Member member = memberService.findByEmail(userDetails.getUsername());
             Cart cart = cartService.getCartWithItems(member);
@@ -134,8 +141,10 @@ public class CartController {
             response.put("message", "장바구니에서 삭제되었습니다.");
             response.put("totalPrice", cart.getTotalPrice());
             response.put("totalItems", cart.getTotalItems());
+            log.info("Successfully removed cart item ID: {}. Returning success response.", cartItemId);
             
         } catch (Exception e) {
+            log.error("Error removing cart item ID: {}", cartItemId, e);
             response.put("success", false);
             response.put("message", "삭제 중 오류가 발생했습니다.");
         }
@@ -144,7 +153,7 @@ public class CartController {
     }
     
     // 장바구니 비우기
-    @PostMapping("/cart/clear")
+    @PostMapping("/clear")
     public String clearCart(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails != null) {
             Member member = memberService.findByEmail(userDetails.getUsername());
@@ -154,7 +163,7 @@ public class CartController {
     }
     
     // 장바구니 아이템 개수 조회 (헤더용)
-    @GetMapping("/cart/count")
+    @GetMapping("/count")
     @ResponseBody
     public ResponseEntity<Integer> getCartItemCount(@AuthenticationPrincipal UserDetails userDetails) {
         if (userDetails != null) {

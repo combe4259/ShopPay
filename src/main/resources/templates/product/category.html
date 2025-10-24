@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${category + ' - ShopPay'}">카테고리 - ShopPay</title>
+    <link rel="stylesheet" href="/css/ikea-style.css">
+    <link rel="stylesheet" href="/css/ikea-home.css">
     <style>
         * {
             margin: 0;
@@ -354,17 +356,19 @@
     </style>
 </head>
 <body>
-    <!-- 헤더 네비게이션 -->
-    <div class="header">
-        <div class="nav-container">
-            <div class="breadcrumb">
-                <a href="/">홈</a>
-                <span>></span>
-                <a href="/products">모든 제품</a>
-                <span>></span>
-                <span th:text="${category}">카테고리명</span>
-            </div>
-        </div>
+    <div th:replace="~{fragments/header :: headerFragment}"></div>
+
+
+
+    <!-- 이동 경로 (Breadcrumb) -->
+    <div class="breadcrumb" style="padding: 20px 40px; border-bottom: 1px solid #e0e0e0;">
+        <a href="/">홈</a>
+        <span>></span>
+        <a href="/products">모든 제품</a>
+        <th:block th:if="${category != 'All'}">
+            <span>></span>
+            <span th:text="${category}">카테고리명</span>
+        </th:block>
     </div>
     
     <!-- 카테고리 헤더 -->
@@ -377,6 +381,22 @@
         </div>
     </div>
     
+    <!-- 카테고리 목록 -->
+    <div class="category-list-bar" style="background: white; padding: 15px 0; border-top: 1px solid #e0e0e0; text-align: center;">
+        <div class="category-list-container" style="max-width: 1400px; margin: 0 auto; padding: 0 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+            <a th:href="@{/products}"
+               th:class="${category == 'All' ? 'filter-btn active' : 'filter-btn'}">
+               전체
+            </a>
+            <a th:each="cat : ${categories}"
+               th:href="@{/products(category=${cat.name})}"
+               th:text="${cat.name}"
+               th:class="${category == cat.name ? 'filter-btn active' : 'filter-btn'}">
+               카테고리명
+            </a>
+        </div>
+    </div>
+
     <!-- 필터 및 정렬 -->
     <div class="filter-bar">
         <div class="filter-container">

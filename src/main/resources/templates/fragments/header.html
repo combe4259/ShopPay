@@ -1,0 +1,61 @@
+<div th:fragment="headerFragment"
+     xmlns:th="http://www.thymeleaf.org"
+     xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+    <!-- Header -->
+    <div class="header">
+        <div class="header-background">
+            <div class="header-container">
+
+                <div class="ikea-logo">
+                    <a href="/" style="text-decoration: none;">
+                        <div style="background: #0058AB; color: #FBD914; padding: 8px 20px; border-radius: 50px; font-weight: bold; font-size: 24px;">
+                            IKEA
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Search -->
+                <div class="search-container">
+                    <span class="search-icon" style="position: absolute; left: 16px; top: 12px; font-size: 20px;">🔍</span>
+                    <input type="text" class="search-input" placeholder="검색어 입력" style="padding-left: 48px;">
+                    <button class="camera-search-btn">
+                        <span style="font-size: 20px;">📷</span>
+                    </button>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="navigation-links">
+                    <!-- 비로그인 상태 -->
+                    <th:block th:if="${#authorization.expression('!isAuthenticated()')}">
+                        <button class="signup-btn" onclick="location.href='/signup'">
+                            <span>회원가입</span>
+                        </button>
+
+                        <button class="login-btn" onclick="location.href='/login'">
+                            <span>로그인</span>
+                        </button>
+                    </th:block>
+
+                    <!-- 로그인 상태 -->
+                    <th:block sec:authorize="isAuthenticated()">
+                        <button class="login-btn" onclick="location.href='/mypage'">
+                            <span>마이페이지</span>
+                        </button>
+                        <form th:action="@{/logout}" method="post" style="display: inline;">
+                            <button class="login-btn" type="submit" style="margin-left: 10px;">
+                                로그아웃
+                            </button>
+                        </form>
+                    </th:block>
+
+                    <button class="icon-btn" style="font-size: 20px;" onclick="location.href='/wishlist'">
+                        ❤️
+                    </button>
+                    <button class="icon-btn" style="font-size: 20px;" onclick="location.href='/cart'">
+                        🛒<span class="cart-count" style="font-size: 12px; vertical-align: top; background-color: red; color: white; border-radius: 50%; padding: 2px 5px; margin-left: -5px;"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

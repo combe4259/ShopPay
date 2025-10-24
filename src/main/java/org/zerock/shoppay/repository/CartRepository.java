@@ -27,7 +27,5 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
     
     // N+1 문제 발생 버전 (JPA 메서드 네이밍 사용)
     Optional<Cart> findByMemberId(Long memberId);
-    
-    // 회원의 장바구니 존재 여부 확인
-    boolean existsByMember(Member member);
+
 }

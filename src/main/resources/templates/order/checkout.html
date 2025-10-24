@@ -446,19 +446,12 @@
                     
                     <div class="payment-methods">
                         <div class="payment-method selected" data-payment="CARD">
-                            <div class="payment-method-icon">💳</div>
                             <div class="payment-method-name">신용/체크카드</div>
                         </div>
-                        <div class="payment-method" data-payment="KAKAO_PAY">
-                            <div class="payment-method-icon">🟡</div>
-                            <div class="payment-method-name">카카오페이</div>
-                        </div>
                         <div class="payment-method" data-payment="TOSS_PAY">
-                            <div class="payment-method-icon">🔵</div>
                             <div class="payment-method-name">토스페이</div>
                         </div>
                         <div class="payment-method" data-payment="TRANSFER">
-                            <div class="payment-method-icon">🏦</div>
                             <div class="payment-method-name">계좌이체</div>
                         </div>
                     </div>
@@ -472,10 +465,6 @@
                 <div class="summary-row">
                     <span>상품 금액</span>
                     <span>₩<span th:text="${#numbers.formatInteger(subtotal, 3, 'COMMA')}">0</span></span>
-                </div>
-                <div class="summary-row subtotal">
-                    <span>배송비</span>
-                    <span th:text="${deliveryFee == 0 ? '무료' : '₩' + #numbers.formatInteger(deliveryFee, 3, 'COMMA')}">₩5,000</span>
                 </div>
                 
                 <div class="summary-row total">
@@ -560,7 +549,6 @@
                     // 주문 생성에 필요한 데이터
                     const orderPayload = {
                         cartItemIds: cartItems.map(item => item.id),
-                        // 추가적인 배송 정보 등도 포함 가능
                     };
 
                     try {
@@ -578,9 +566,7 @@
                             sessionStorage.setItem('selectedCartItems', JSON.stringify(data.selectedItemIds));
 
                             // 3. 토스페이먼츠 결제창 호출
-                            const orderName = cartItems.length > 1 
-                                ? `${cartItems[0].product.name} 외 ${cartItems.length - 1}건`
-                                : cartItems[0].product.name;
+                            const orderName = cartItems.length > 1 ? `${cartItems[0].product.name} 외 ${cartItems.length - 1}건` : cartItems[0].product.name;
 
                             await payment.requestPayment({
                                 method: selectedPayment,

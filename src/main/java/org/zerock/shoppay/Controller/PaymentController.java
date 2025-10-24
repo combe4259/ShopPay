@@ -1,50 +1,44 @@
 package org.zerock.shoppay.Controller;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.springframework.http.ResponseEntity;
-import org.json.simple.JSONObject;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ui.Model;
-import org.zerock.shoppay.service.OrderService;
-import org.zerock.shoppay.service.CartService;
-import org.zerock.shoppay.service.MemberService;
-import org.zerock.shoppay.Entity.Member;
-import org.zerock.shoppay.Entity.Order;
-import org.zerock.shoppay.Entity.OrderItem;
-import org.zerock.shoppay.Entity.Cart;
-import org.zerock.shoppay.Entity.CartItem;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import java.util.List;
-import java.util.ArrayList;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.zerock.shoppay.Entity.Member;
+import org.zerock.shoppay.Entity.Order;
+import org.zerock.shoppay.dto.PaymentConfirmRequestDto;
+import org.zerock.shoppay.service.CartService;
+import org.zerock.shoppay.service.MemberService;
+import org.zerock.shoppay.service.OrderService;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
 public class PaymentController {
 
-
-
     @Value("${toss.secret.key}")
     private String API_SECRET_KEY;
-    
+
     @Value("${toss.client.key}")
     private String CLIENT_KEY;
 
@@ -53,161 +47,70 @@ public class PaymentController {
     private final MemberService memberService;
 
     @PostMapping("/confirm/payment")
-    @ResponseBody
     public ResponseEntity<JSONObject> confirmPayment(
-            HttpServletRequest request,
-            @RequestBody String jsonBody,
+            @RequestBody PaymentConfirmRequestDto requestDto,
             @AuthenticationPrincipal UserDetails userDetails) throws Exception {
 
-        JSONObject requestData = parseRequestData(jsonBody);
-        String orderId = (String) requestData.get("orderId");
-        String paymentKey = (String) requestData.get("paymentKey");
-        Long amount = Long.parseLong(requestData.get("amount").toString());
+        // 1. DB에서 주문 정보를 미리 조회합니다.
+        Order order = orderService.findById(requestDto.getOrderId())
+                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + requestDto.getOrderId()));
 
-        // 토스페이먼츠 결제 승인 API 호출
+        // 2. DB에 저장된 금액과 요청된 결제 금액이 일치하는지 확인합니다. (금액 위변조 방지)
+        if (!order.getTotalAmount().equals(requestDto.getAmount().intValue())) {
+            throw new RuntimeException("주문 금액이 일치하지 않습니다.");
+        }
+
+        // 3. 토스페이먼츠 결제 승인 API를 호출합니다.
+        JSONObject requestData = new JSONObject();
+        requestData.put("orderId", requestDto.getOrderId());
+        requestData.put("amount", requestDto.getAmount());
+        requestData.put("paymentKey", requestDto.getPaymentKey());
+
         JSONObject response = sendRequest(requestData, API_SECRET_KEY, "https://api.tosspayments.com/v1/payments/confirm");
-        
-        System.out.println("토스 응답: " + response.toJSONString());
-        
-        if (!response.containsKey("error")) {
-            System.out.println("결제 승인 성공!");
-            
-            // 결제 성공 - 주문 데이터 저장
+
+        // 4. 토스페이먼츠의 응답에 따라 후속 처리를 합니다.
+        if (response.get("status").equals("DONE")) {
+            // 5. 결제 성공: OrderService를 통해 주문 상태를 'PAID'로 변경하고 재고를 차감합니다.
+            Order confirmedOrder = orderService.confirmPayment(requestDto.getOrderId(), requestDto.getPaymentKey(), requestDto.getAmount());
+
+            // 6. 결제된 상품들을 장바구니에서 제거합니다.
             if (userDetails != null) {
                 Member member = memberService.findByEmail(userDetails.getUsername());
-                Cart cart = cartService.getCartWithItems(member);
-                
-                List<Integer> selectedItemIds = null;
-                if (requestData.containsKey("selectedCartItems") && requestData.get("selectedCartItems") != null) {
-                    String selectedItemsJsonString = (String) requestData.get("selectedCartItems");
-                    if (selectedItemsJsonString != null && !selectedItemsJsonString.isEmpty()) {
-                        JSONParser parser = new JSONParser();
-                        try {
-                            org.json.simple.JSONArray selectedItemsArray = (org.json.simple.JSONArray) parser.parse(selectedItemsJsonString);
-                            selectedItemIds = new ArrayList<>();
-                            for (Object id : selectedItemsArray) {
-                                selectedItemIds.add(((Long) id).intValue());
-                            }
-                        } catch (ParseException e) {
-                            System.err.println("Error parsing selectedCartItems: " + e.getMessage());
-                            selectedItemIds = new ArrayList<>(); // 오류 발생 시 안전하게 빈 리스트로 처리
-                        }
-                    }
-                }
-                
-                // 주문 생성
-                Order order = Order.builder()
-                    .orderId(orderId)
-                    .member(member)
-                    .totalAmount(amount.intValue())
-                    .status("PAID")
-                    .paymentKey(paymentKey)
-                    .paidAt(LocalDateTime.now())
-                    .build();
-                
-                List<OrderItem> orderItems = new ArrayList<>();
-                List<CartItem> itemsToRemove = new ArrayList<>();
-                
-                if (selectedItemIds != null && !selectedItemIds.isEmpty()) {
-                    for (CartItem cartItem : cart.getCartItems()) {
-                        if (selectedItemIds.contains(cartItem.getId().intValue())) {
-                            OrderItem orderItem = OrderItem.builder()
-                                .order(order)
-                                .product(cartItem.getProduct())
-                                .quantity(cartItem.getQuantity())
-                                .price(cartItem.getProduct().getPrice())
-                                .build();
-                            orderItems.add(orderItem);
-                            itemsToRemove.add(cartItem); // 제거할 아이템 목록에 추가
-                        }
-                    }
-                } else {
-                    System.out.println("Warning: Payment confirmed but no selectedCartItems found. Cart will not be cleared.");
-                }
-                order.setOrderItems(orderItems);
-                
-                // 주문 저장
-                System.out.println("주문 저장 시작...");
-                Order savedOrder = orderService.saveOrder(order);
-                System.out.println("주문 저장 완료! orderId: " + savedOrder.getOrderId());
-
-                // 선택된 아이템만 장바구니에서 제거
-                for (CartItem item : itemsToRemove) {
-                    cartService.removeFromCart(item.getId());
-                }
-                
-                response.put("message", "주문이 성공적으로 처리되었습니다.");
-            } else {
-                response.put("warning", "비로그인 상태에서 결제되었습니다. 주문 정보가 저장되지 않았습니다.");
+                List<Long> purchasedProductIds = confirmedOrder.getOrderItems().stream()
+                        .map(orderItem -> orderItem.getProduct().getId())
+                        .collect(Collectors.toList());
+                cartService.removeCartItemsByProductIds(member, purchasedProductIds);
             }
+
+            return ResponseEntity.ok(response);
         } else {
-            System.out.println("ERROR: 결제 승인 실패!");
+            // 7. 결제 실패: 토스페이먼츠가 돌려준 에러 메시지를 그대로 클라이언트에게 전달합니다.
+            return ResponseEntity.status(400).body(response);
         }
-        
-        int statusCode = response.containsKey("error") ? 400 : 200;
-        return ResponseEntity.status(statusCode).body(response);
     }
-
-
 
     @GetMapping("/payment/checkout")
-    public String checkout(
-            @RequestParam(required = false) String orderId,
-            @RequestParam(required = false) Integer amount,
-            @RequestParam(required = false) String orderName,
-            Model model) {
+    public String checkoutPage(Model model) {
         model.addAttribute("clientKey", CLIENT_KEY);
-        model.addAttribute("orderId", orderId != null ? orderId : "ORDER_" + System.currentTimeMillis());
-        model.addAttribute("amount", amount != null ? amount : 50000);
-        model.addAttribute("orderName", orderName != null ? orderName : "IKEA 상품");
         return "payment/checkout";
     }
-    
 
-
-
-
-
-
-
-
-    private JSONObject parseRequestData(String jsonBody) {
-        try {
-            return (JSONObject) new JSONParser().parse(jsonBody);
-        } catch (ParseException e) {
-            //logger.error("JSON Parsing Error", e);
-            return new JSONObject();
-        }
-    }
-
-
-    private JSONObject sendRequest(JSONObject requestData, String secretKey, String urlString) throws IOException {
-        HttpURLConnection connection = createConnection(secretKey, urlString);
-        try (OutputStream os = connection.getOutputStream()) {
-            os.write(requestData.toString().getBytes(StandardCharsets.UTF_8));
-        }
-
-        try (InputStream responseStream = connection.getResponseCode() == 200 ? connection.getInputStream() : connection.getErrorStream();
-             Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8)) {
-            return (JSONObject) new JSONParser().parse(reader);
-        } catch (Exception e) {
-            //logger.error("Error reading response", e);
-            JSONObject errorResponse = new JSONObject();
-            errorResponse.put("error", "Error reading response");
-            return errorResponse;
-        }
-    }
-
-    private HttpURLConnection createConnection(String secretKey, String urlString) throws IOException {
+    private JSONObject sendRequest(JSONObject requestData, String secretKey, String urlString) throws IOException, ParseException {
         URL url = new URL(urlString);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Authorization", "Basic " + Base64.getEncoder().encodeToString((secretKey + ":").getBytes(StandardCharsets.UTF_8)));
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
-        return connection;
+
+        try (OutputStream os = connection.getOutputStream()) {
+            os.write(requestData.toString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        int responseCode = connection.getResponseCode();
+        try (InputStream responseStream = (responseCode == 200) ? connection.getInputStream() : connection.getErrorStream();
+             Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8)) {
+            return (JSONObject) new JSONParser().parse(reader);
+        }
     }
-    
-
-
 }
