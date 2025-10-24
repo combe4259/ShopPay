@@ -4,6 +4,7 @@ import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -15,6 +16,7 @@ import org.zerock.shoppay.exception.InsufficientStockException;
 import org.zerock.shoppay.exception.OptimisticLockConflictException;
 import org.zerock.shoppay.exception.ProductNotFoundException;
 import org.zerock.shoppay.repository.ProductRepository;
+import org.zerock.shoppay.repository.ProductSpecification;
 
 import java.util.List;
 import java.util.Optional;
@@ -92,7 +94,7 @@ public class ProductService {
         System.out.println("재고 감소 시도: " + productId);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ProductNotFoundException("상품을 찾을 수 없습니다: " + productId));
-        //재고가 처음부터 부족한 로 - 재시도 안됨
+        //재고가 처음부터 부족한 로직 - 재시도 안됨
         if (product.getStock() < quantity) {
             throw new InsufficientStockException("재고가 부족합니다.");
         }
@@ -100,13 +102,14 @@ public class ProductService {
         product.setStock(product.getStock() - quantity);
     }
 
-    // decreaseStock 메소드의 모든 재시도가 실패했을 때 호출될 메소드
+    //재고 감소 전부 실패시 자동 호출
     @Recover
     public void recoverDecreaseStock(RuntimeException e, Long productId, Integer quantity) {
         System.err.println("최대 재시도 횟수 초과: " + productId + ", 이유: " + e.getMessage());
         throw new OptimisticLockConflictException("다른 사용자와의 충돌로 인해 요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요.");
     }
 
+    //native SQL을 이용한 재고 감소
     @Transactional
     public void decreaseStockWithNativeQuery(Long productId, Integer quantity) {
         int updatedRows = productRepository.decreaseStockNative(productId);
@@ -121,14 +124,22 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         if (product.getStock() < quantity) {
-            throw new RuntimeException("Insufficient stock");
+            throw new InsufficientStockException("재고가 부족합니다.");
         }
 
         product.setStock(product.getStock() - quantity);
     }
     
     @Transactional(readOnly = true)
-    public Page<Product> getProductsByCategoryWithPagination(String categoryName, Pageable pageable) {
-        return productRepository.findByCategoryAndActiveTrue(categoryName, pageable);
+    public Page<Product> findProducts(String category, Pageable pageable) {
+        // 1. 기본적으로 is_active = true 조건을 설정합니다.
+        Specification<Product> spec = Specification.where(ProductSpecification.isActive());
+
+        // 2. category 파라미터가 있으면, 카테고리 필터 조건을 추가합니다.
+        // ProductSpecification.hasCategory가 null 또는 빈 문자열을 안전하게 처리합니다.
+        spec = spec.and(ProductSpecification.hasCategory(category));
+
+        // 3. 최종 조합된 조건으로 Repository에 쿼리를 요청합니다.
+        return productRepository.findAll(spec, pageable);
     }
 }

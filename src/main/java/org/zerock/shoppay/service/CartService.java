@@ -11,7 +11,11 @@ import org.zerock.shoppay.repository.CartItemRepository;
 import org.zerock.shoppay.repository.CartRepository;
 import org.zerock.shoppay.repository.ProductRepository;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.zerock.shoppay.service.MemberService;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +25,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final MemberService memberService;
     
     // 회원의 장바구니 조회 (없으면 생성)
     @Transactional
@@ -38,8 +43,7 @@ public class CartService {
     @Transactional
     public CartItem addToCart(Member member, Long productId, int quantity) {
         Cart cart = getOrCreateCart(member);
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
+        Product product = productRepository.findById(productId).orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
         
         // 재고 확인
         if (product.getStock() < quantity) {
@@ -93,7 +97,10 @@ public class CartService {
     // 장바구니 아이템 삭제
     @Transactional
     public void removeFromCart(Long cartItemId) {
-        cartItemRepository.deleteById(cartItemId);
+        cartItemRepository.findById(cartItemId).ifPresent(cartItem -> {
+            // orphanRemoval=true 이므로 부모의 컬렉션에서 제거하면 자식은 자동으로 삭제된다.
+            cartItem.getCart().getCartItems().remove(cartItem);
+        });
     }
     
     // 장바구니 비우기
@@ -103,15 +110,32 @@ public class CartService {
         cartItemRepository.deleteAllByCart(cart);
         cart.clear();
     }
+
+    // 특정 상품 ID 목록을 장바구니에서 제거
+    @Transactional
+    public void removeCartItemsByProductIds(Member member, List<Long> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return;
+        }
+        Cart cart = getOrCreateCart(member);
+        if (cart != null) {
+            List<CartItem> itemsToRemove = cart.getCartItems().stream()
+                    .filter(item -> productIds.contains(item.getProduct().getId()))
+                    .collect(Collectors.toList());
+
+            if (!itemsToRemove.isEmpty()) {
+                // orphanRemoval=true를 활용하여 Cart의 리스트에서 제거하는 것만으로 DB 삭제가 처리됩니다.
+                cart.getCartItems().removeAll(itemsToRemove);
+            }
+        }
+    }
     
     // 장바구니 조회 (아이템 포함)
     public Cart getCartWithItems(Member member) {
-        // 기존 Fetch Join 버전 (N+1 문제 해결)
-        /*
-        return cartRepository.findByMemberIdWithItems(member.getId())
-            .orElseGet(() -> Cart.builder().member(member).build());
-        */
-        
+        // Fetch Join을 사용하여 N+1 문제 해결
+//        return cartRepository.findByMemberIdWithItems(member.getId())
+//            .orElseGet(() -> Cart.builder().member(member).build());
+
         // N+1 문제 발생 버전 (테스트용)
         System.out.println("========== N+1 문제 테스트 시작 ==========");
         Cart cart = cartRepository.findByMemberId(member.getId())
@@ -142,5 +166,14 @@ public class CartService {
     public int getCartTotalPrice(Member member) {
         Cart cart = cartRepository.findByMember(member).orElse(null);
         return cart != null ? cart.getTotalPrice() : 0;
+    }
+
+    // 사용자 이름(이메일)으로 장바구니 아이템 개수 조회
+    public int getCartItemCount(String username) {
+        Member member = memberService.findByEmail(username);
+        if (member == null) {
+            return 0;
+        }
+        return getCartItemCount(member);
     }
 }

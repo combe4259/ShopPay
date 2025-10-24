@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${product.name + ' - IKEA'}">상품명 - IKEA</title>
+    <title th:text="${product.name}">상품명</title>
+    <link rel="stylesheet" href="/css/ikea-style.css">
+    <link rel="stylesheet" href="/css/ikea-home.css">
     <style>
         * {
             margin: 0;
@@ -71,36 +73,6 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-        }
-        
-        .image-thumbnails {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .thumbnail {
-            width: 80px;
-            height: 80px;
-            border: 2px solid transparent;
-            border-radius: 4px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-        
-        .thumbnail:hover {
-            border-color: #0058a3;
-        }
-        
-        .thumbnail.active {
-            border-color: #0058a3;
-        }
-        
-        .thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
         }
         
         /* 정보 섹션 */
@@ -491,13 +463,17 @@
     </style>
 </head>
 <body>
+    <div th:replace="~{fragments/header :: headerFragment}"></div>
+
+
+
     <!-- 네비게이션 -->
     <div class="breadcrumb">
         <a href="/">홈</a>
         <span>></span>
-        <a href="/products">제품</a>
+        <a href="/products">모든 제품</a>
         <span>></span>
-        <a th:href="@{/products/category/{category}(category=${product.category?.name})}" 
+        <a th:href="@{/products(category=${product.category?.name})}" 
            th:text="${product.category?.name}">카테고리</a>
         <span>></span>
         <span th:text="${product.name}">상품명</span>
@@ -512,21 +488,7 @@
                      th:src="${product.imageUrl != null ? product.imageUrl : 'https://via.placeholder.com/600x600?text=No+Image'}"
                      th:alt="${product.name}">
             </div>
-            <div class="image-thumbnails">
-                <div class="thumbnail active">
-                    <img th:src="${product.imageUrl != null ? product.imageUrl : 'https://via.placeholder.com/80x80?text=1'}"
-                         th:alt="${product.name}">
-                </div>
-                <div class="thumbnail">
-                    <img src="https://via.placeholder.com/80x80?text=2" alt="이미지 2">
-                </div>
-                <div class="thumbnail">
-                    <img src="https://via.placeholder.com/80x80?text=3" alt="이미지 3">
-                </div>
-                <div class="thumbnail">
-                    <img src="https://via.placeholder.com/80x80?text=4" alt="이미지 4">
-                </div>
-            </div>
+
         </div>
         
         <!-- 정보 섹션 -->
@@ -738,14 +700,7 @@
             }
         }
         
-        // 썸네일 클릭 이벤트
-        document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
-            thumb.addEventListener('click', function() {
-                document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                // TODO: 메인 이미지 변경 로직
-            });
-        });
+
         
         // 사이즈 옵션 선택
         document.querySelectorAll('.size-option').forEach(option => {

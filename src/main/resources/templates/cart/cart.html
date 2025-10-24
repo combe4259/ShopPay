@@ -583,14 +583,12 @@
                 }
             });
             
-            // 배송비 계산
-            const deliveryFee = totalPrice >= 50000 ? 0 : 5000;
-            const finalTotal = totalPrice + deliveryFee;
+            // 배송비 로직 제거
+            const finalTotal = totalPrice;
             
             // UI 업데이트
             document.getElementById('selectedCount').textContent = itemCount;
             document.getElementById('selectedAmount').textContent = totalPrice.toLocaleString();
-            document.getElementById('deliveryFee').textContent = deliveryFee === 0 ? '무료' : '₩' + deliveryFee.toLocaleString();
             document.getElementById('totalAmount').textContent = finalTotal.toLocaleString();
             
             // 주문 버튼 활성화/비활성화
@@ -648,13 +646,22 @@
                 fetch('/cart/remove/' + cartItemId, {
                     method: 'DELETE'
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('서버 응답이 올바르지 않습니다: ' + response.statusText);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         location.reload();
                     } else {
-                        alert(data.message);
+                        alert('삭제 실패: ' + data.message);
                     }
+                })
+                .catch(error => {
+                    console.error('삭제 중 오류 발생:', error);
+                    alert('삭제 처리 중 오류가 발생했습니다. 개발자 콘솔을 확인해주세요.');
                 });
             }
         }

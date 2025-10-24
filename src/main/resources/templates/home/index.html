@@ -12,90 +12,12 @@
 
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-background">
-            <div class="header-container">
-
-                <div class="ikea-logo">
-                    <!--TODO:흠-->
-                    <a href="/ikea" style="text-decoration: none;">
-                        <div style="background: #0058AB; color: #FBD914; padding: 8px 20px; border-radius: 50px; font-weight: bold; font-size: 24px;">
-                            IKEA
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Search -->
-                <div class="search-container">
-                    <span class="search-icon" style="position: absolute; left: 16px; top: 12px; font-size: 20px;">🔍</span>
-                    <input type="text" class="search-input" placeholder="검색어 입력" style="padding-left: 48px;">
-                    <button class="camera-search-btn">
-                        <span style="font-size: 20px;">📷</span>
-                    </button>
-                </div>
-
-                <!-- Navigation Links -->
-                <div class="navigation-links">
-                    <!-- 비로그인 상태 -->
-                    <th:block th:if="${#authorization.expression('!isAuthenticated()')}">
-                        <button class="signup-btn" onclick="location.href='/signup'">
-                            <span>회원가입</span>
-                        </button>
-
-                        <button class="login-btn" onclick="location.href='/login'">
-                            <span>로그인</span>
-                        </button>
-                    </th:block>
-                    
-                    <!-- 로그인 상태 -->
-                    <th:block th:if="${#authorization.expression('isAuthenticated()')}">
-                        <button class="login-btn" onclick="location.href='/mypage'">
-                            <span>마이페이지</span>
-                        </button>
-                        <button class="login-btn" onclick="location.href='/logout'" style="margin-left: 10px;">
-                            로그아웃
-                        </button>
-                    </th:block>
-                    
-                    <button class="icon-btn" style="font-size: 20px;" onclick="location.href='/wishlist'">
-                        ❤️
-                    </button>
-                    <button class="icon-btn" style="font-size: 20px;" onclick="location.href='/cart'">
-                        🛒
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div th:replace="~{fragments/header :: headerFragment}"></div>
 
     <!-- Navigation -->
     <!--    TODO-->
     <div class="nav-section">
-        <div class="nav-divider"></div>
-        <div class="tab-list">
-            <div class="tab active">
-                <span class="tab-text">모든 제품</span>
-            </div>
-            <div class="tab">
-                <span class="tab-text">공간별 쇼핑하기</span>
-            </div>
-            <div class="tab">
-                <span class="tab-text">특별한 가격</span>
-            </div>
-            <div class="tab">
-                <span class="tab-text">새로운 소식</span>
-            </div>
-            <div class="tab">
-                <span class="tab-text">아이디어</span>
-            </div>
-            <div class="tab">
-                <span class="tab-text">플래닝 & 스타일링 서비스</span>
-            </div>
-            <div class="tab">
-                <span class="tab-text">더 보기</span>
-            </div>
-        </div>
+        <div th:replace="~{fragments/navigation :: navigationFragment}"></div>
 
         <!-- Tab Panel -->
         <div class="tab-panel">
@@ -103,7 +25,7 @@
                 <div th:each="category : ${categories}" class="category-item">
                     <img class="category-image" th:src="${category.image_url}">
                     <div class="category-label">
-                        <a th:href="@{/products/category/{categoryName}(categoryName=${category.name})}" th:text="${category.name}">카테고리명</a>
+                        <a th:href="@{/products(category=${category.name})}" th:text="${category.name}">카테고리명</a>
                     </div>
                 </div>
             </div>
