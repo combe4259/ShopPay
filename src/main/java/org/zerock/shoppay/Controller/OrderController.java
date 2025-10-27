@@ -147,4 +147,28 @@ public class OrderController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    // 주문 취소 API (프론트엔드 결제창 이탈 시 호출)
+    @PostMapping("/cancel")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> cancelOrder(
+            @RequestBody Map<String, String> request) {
+
+        Map<String, Object> response = new HashMap<>();
+        String orderId = request.get("orderId");
+
+        try {
+            orderService.cancelOrderAndRestoreStock(orderId);
+
+            response.put("success", true);
+            response.put("message", "주문이 취소되고 재고가 복구되었습니다.");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.zerock.shoppay.Entity.Order;
 import org.zerock.shoppay.Entity.Member;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,4 +24,11 @@ public interface OrderRepository extends JpaRepository<Order, String> {
            "WHERE o.member = :member " +
            "ORDER BY o.createdAt DESC")
     List<Order> findByMemberWithItems(@Param("member") Member member);
+
+    // 만료된 PENDING 주문 조회 (재고 복구용)
+    @Query("SELECT o FROM Order o " +
+           "LEFT JOIN FETCH o.orderItems oi " +
+           "LEFT JOIN FETCH oi.product " +
+           "WHERE o.status = :status AND o.reservedUntil < :now")
+    List<Order> findExpiredOrders(@Param("status") String status, @Param("now") LocalDateTime now);
 }

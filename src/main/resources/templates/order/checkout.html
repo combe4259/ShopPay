@@ -498,10 +498,14 @@
             const member = [[${memberJson}]];
             let selectedPayment = 'CARD'; // 기본값
 
+            // 결제 상태 추적 변수
+            let currentOrderId = null;
+            let paymentCompleted = false;
+
             // Toss Payments SDK 초기화
             const tossPayments = TossPayments(clientKey);
-            const payment = tossPayments.payment({ 
-                customerKey: member ? member.email : TossPayments.ANONYMOUS 
+            const payment = tossPayments.payment({
+                customerKey: member ? member.email : TossPayments.ANONYMOUS
             });
 
             // 주소 검색 버튼 이벤트
@@ -537,6 +541,41 @@
                 });
             }
         
+            // 주문 취소 함수
+            async function cancelOrder(orderId) {
+                try {
+                    console.log('주문 취소 시도:', orderId);
+                    const response = await fetch('/order/cancel', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderId: orderId })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        console.log('주문 취소 성공:', result.message);
+                    } else {
+                        console.error('주문 취소 실패:', result.message);
+                    }
+                } catch (error) {
+                    console.error('주문 취소 API 호출 실패:', error);
+                    // 실패해도 스케줄러가 15분 내 처리
+                }
+            }
+
+            // 페이지 이탈 감지 (브라우저 닫기, 뒤로가기 등)
+            window.addEventListener('beforeunload', function(e) {
+                if (currentOrderId && !paymentCompleted) {
+                    // beforeunload에서는 비동기 요청이 보장되지 않으므로 sendBeacon 사용
+                    const blob = new Blob(
+                        [JSON.stringify({ orderId: currentOrderId })],
+                        { type: 'application/json' }
+                    );
+                    navigator.sendBeacon('/order/cancel', blob);
+                    console.log('페이지 이탈 감지 - 주문 취소 요청 전송');
+                }
+            });
+
             // 결제 버튼 이벤트
             const payBtn = document.getElementById('payBtn');
             if (payBtn) {
@@ -552,7 +591,7 @@
                     };
 
                     try {
-                        // 1. 서버에 주문 생성 요청 (AJAX)
+                        // 1. 서버에 주문 생성 요청 (재고 차감됨)
                         const response = await fetch('/order/create-from-cart', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -562,6 +601,10 @@
                         const data = await response.json();
 
                         if (data.success) {
+                            // 주문 ID 저장 (결제창 이탈 감지용)
+                            currentOrderId = data.orderId;
+                            paymentCompleted = false;
+
                             // 2. 결제 성공 후 처리를 위해 선택된 아이템 ID를 세션 스토리지에 저장
                             sessionStorage.setItem('selectedCartItems', JSON.stringify(data.selectedItemIds));
 
@@ -572,9 +615,9 @@
                                 method: selectedPayment,
                                 amount: {
                                     currency: "KRW",
-                                    value: data.totalAmount, // 서버에서 받은 최종 금액 사용
+                                    value: data.totalAmount,
                                 },
-                                orderId: data.orderId, // 서버에서 받은 주문 ID 사용
+                                orderId: data.orderId,
                                 orderName: orderName,
                                 successUrl: `${window.location.origin}/payment/success`,
                                 failUrl: `${window.location.origin}/payment/fail`,
@@ -582,12 +625,23 @@
                                 customerName: member ? member.name : document.getElementById('receiverName').value,
                             });
 
+                            // 여기 도달하면 결제 성공 또는 실패로 리다이렉트된 것
+                            paymentCompleted = true;
+
                         } else {
                             alert(`주문 생성 실패: ${data.message}`);
                         }
                     } catch (error) {
+                        // ⭐ 사용자가 결제창을 닫았을 때 (이탈)
                         console.error('결제 처리 중 오류 발생:', error);
-                        alert('결제 처리 중 오류가 발생했습니다.');
+
+                        if (currentOrderId && !paymentCompleted) {
+                            // 즉시 주문 취소 및 재고 복구
+                            await cancelOrder(currentOrderId);
+                            alert('결제가 취소되었습니다.');
+                        } else {
+                            alert('결제 처리 중 오류가 발생했습니다.');
+                        }
                     }
                 });
             }

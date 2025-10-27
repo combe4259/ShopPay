@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.zerock.shoppay.Entity.Member;
 import org.zerock.shoppay.Entity.Order;
 import org.zerock.shoppay.dto.PaymentConfirmRequestDto;
@@ -46,6 +47,7 @@ public class PaymentController {
     private final CartService cartService;
     private final MemberService memberService;
 
+    @ResponseBody
     @PostMapping("/confirm/payment")
     public ResponseEntity<JSONObject> confirmPayment(
             @RequestBody PaymentConfirmRequestDto requestDto,

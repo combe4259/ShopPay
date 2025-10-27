@@ -35,11 +35,13 @@ public class OrderService {
             throw new IllegalArgumentException("주문 상품 정보를 찾을 수 없거나 유효하지 않은 상품이 포함되어 있습니다.");
         }
 
-        // 재고 확인
+        // 1단계: 재고 차감 (Native Query로 동시성 제어 - 성능 최적화)
+        // 여기서 차감하므로 다른 사용자가 동시에 구매할 수 없음
         for (CartItem cartItem : cartItems) {
-            if (cartItem.getProduct().getStock() < cartItem.getQuantity()) {
-                throw new RuntimeException("재고가 부족한 상품이 있습니다: " + cartItem.getProduct().getName());
-            }
+            productService.decreaseStockWithNativeQuery(
+                cartItem.getProduct().getId(),
+                cartItem.getQuantity()
+            );
         }
 
         // 주문 총액 계산 (서버에서 직접 계산)
@@ -57,6 +59,9 @@ public class OrderService {
                 .totalAmount(totalAmount)
                 .status("PENDING") // 결제 대기 상태
                 .build();
+
+        // 재고 예약 만료 시간 설정 (15분)
+        order.setReservedUntil(LocalDateTime.now().plusMinutes(15));
 
         // 주문 아이템 엔티티 생성 및 주문에 추가
         for (CartItem cartItem : cartItems) {
@@ -94,33 +99,43 @@ public class OrderService {
         order.setStatus("PAID");
         order.setPaidAt(LocalDateTime.now());
 
-        // 4. 재고 감소
-        for (OrderItem item : order.getOrderItems()) {
-            productService.decreaseStock(item.getProduct().getId(), item.getQuantity());
-        }
+        // ⭐ 2단계: 재고는 이미 createOrderFromCart()에서 차감했으므로 여기서는 하지 않음!
+        // 결제 완료 시점에는 상태만 변경
 
         return orderRepository.save(order);
     }
 
-    // 주문 취소
-    public Order cancelOrder(String orderId) {
+    // 주문 취소 및 재고 복구 (프론트에서 이탈 시 또는 스케줄러에서 호출)
+    @Transactional
+    public Order cancelOrderAndRestoreStock(String orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다: " + orderId));
 
+        // 이미 취소된 주문이면 무시
         if ("CANCELLED".equals(order.getStatus())) {
-            throw new RuntimeException("Order already cancelled");
+            return order;
         }
 
-        // 재고 복구
+        // 이미 결제 완료된 주문은 취소 불가
         if ("PAID".equals(order.getStatus())) {
-            for (OrderItem item : order.getOrderItems()) {
-                Product product = item.getProduct();
-                product.setStock(product.getStock() + item.getQuantity());
-                productRepository.save(product);
-            }
+            throw new RuntimeException("결제 완료된 주문은 환불 절차가 필요합니다");
         }
 
-        order.setStatus("CANCELLED");
+        // PENDING 상태만 취소 가능
+        if ("PENDING".equals(order.getStatus())) {
+            // 재고 복구
+            for (OrderItem item : order.getOrderItems()) {
+                productService.increaseStock(
+                    item.getProduct().getId(),
+                    item.getQuantity()
+                );
+            }
+
+            // 주문 취소
+            order.setStatus("CANCELLED");
+            System.out.println("주문 취소 및 재고 복구 완료: " + orderId);
+        }
+
         return orderRepository.save(order);
     }
 

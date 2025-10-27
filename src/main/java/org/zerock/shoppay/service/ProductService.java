@@ -112,9 +112,9 @@ public class ProductService {
     //native SQL을 이용한 재고 감소
     @Transactional
     public void decreaseStockWithNativeQuery(Long productId, Integer quantity) {
-        int updatedRows = productRepository.decreaseStockNative(productId);
+        int updatedRows = productRepository.decreaseStockNative(productId, quantity);
         if (updatedRows == 0) {
-            throw new RuntimeException("재고가 부족하거나 상품이 존재하지 않습니다.");
+            throw new InsufficientStockException("재고가 부족합니다.");
         }
     }
 
@@ -141,5 +141,15 @@ public class ProductService {
 
         // 3. 최종 조합된 조건으로 Repository에 쿼리를 요청합니다.
         return productRepository.findAll(spec, pageable);
+    }
+
+    // 재고 증가 (주문 취소 시 재고 복구용)
+    @Transactional
+    public void increaseStock(Long productId, Integer quantity) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException("상품을 찾을 수 없습니다: " + productId));
+
+        product.setStock(product.getStock() + quantity);
+        System.out.println("재고 복구: 상품 ID=" + productId + ", 수량=" + quantity);
     }
 }

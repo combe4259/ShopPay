@@ -8,7 +8,7 @@ import org.zerock.shoppay.repository.CategoryRepository;
 import org.zerock.shoppay.repository.ProductRepository;
 import org.zerock.shoppay.util.ImprovedDataGenerator;
 
-@Component
+//@Component  // 임시로 비활성화
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
     

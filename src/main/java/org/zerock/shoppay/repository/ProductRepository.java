@@ -42,8 +42,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     List<Product> findByCategoryNameAndIsActiveTrue(@Param("categoryName") String categoryName);
 
     @Modifying
-    @Query(value = "UPDATE products SET stock = stock - 1 WHERE id = :id AND stock > 0", nativeQuery = true)
-    int decreaseStockNative(@Param("id") Long id);
+    @Query(value = "UPDATE products SET stock = stock - :quantity WHERE id = :id AND stock >= :quantity", nativeQuery = true)
+    int decreaseStockNative(@Param("id") Long id, @Param("quantity") Integer quantity);
 
     //재고 감소 비관적 락
     @Lock(LockModeType.PESSIMISTIC_WRITE)

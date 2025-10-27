@@ -48,9 +48,12 @@ public class Order {
     
     @Column(updatable = false)
     private LocalDateTime createdAt;
-    
+
     private LocalDateTime paidAt;
-    
+
+    // 재고 예약 만료 시간 (결제 안 하면 15분 후 자동 취소)
+    private LocalDateTime reservedUntil;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
